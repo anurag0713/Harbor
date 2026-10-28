@@ -30,7 +30,7 @@ public struct FloatingWidgetView: View {
                 } else {
                     Text("Harbor Drop")
                         .font(.system(size: 12, weight: .semibold))
-                    Text(discovery.selectedDevice?.name ?? "No Sim Booted")
+                    Text(discovery.selectedDeviceDisplayName)
                         .font(.system(size: 10))
                         .foregroundColor(.secondary)
                         .lineLimit(1)

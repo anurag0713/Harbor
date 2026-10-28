@@ -104,7 +104,7 @@ public struct DropZoneView: View {
                 return
             }
 
-            self.status = .inProgress("Transferring to \(discovery.selectedDevice?.name ?? "Simulator")...")
+            self.status = .inProgress("Transferring to \(discovery.selectedDeviceDisplayName)...")
 
             Task {
                 let targetUDID = discovery.targetDeviceIdentifier

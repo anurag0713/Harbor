@@ -35,19 +35,19 @@ public struct MenuBarPopoverView: View {
                         Circle()
                             .fill(Color.green)
                             .frame(width: 7, height: 7)
-                        Text(dev.name)
+                        Text(discovery.displayName(for: dev))
                             .font(.system(size: 11, weight: .medium))
                             .lineLimit(1)
                     }
                 } else {
                     Picker("", selection: $discovery.selectedDevice) {
                         ForEach(discovery.bootedDevices) { dev in
-                            Text(dev.name).tag(Optional(dev))
+                            Text(discovery.displayName(for: dev)).tag(Optional(dev))
                         }
                     }
                     .labelsHidden()
                     .controlSize(.mini)
-                    .frame(maxWidth: 130)
+                    .frame(maxWidth: 160)
                 }
 
                 Button(action: { discovery.refresh() }) {
