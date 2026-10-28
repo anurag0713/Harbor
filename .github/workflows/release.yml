@@ -1,0 +1,47 @@
+name: Release Harbor
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-14
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Install xcodegen
+        run: brew install xcodegen
+
+      - name: Generate Xcode Project
+        run: xcodegen generate
+
+      - name: Build Harbor (Release)
+        run: |
+          xcodebuild -project Harbor.xcodeproj \
+            -scheme Harbor \
+            -configuration Release \
+            -destination 'generic/platform=macOS' \
+            CODE_SIGN_IDENTITY="-" \
+            CONFIGURATION_BUILD_DIR="./build" \
+            build
+
+      - name: Compress App
+        run: |
+          cd build
+          ditto -c -k --sequoia --keepParent Harbor.app Harbor.zip
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: build/Harbor.zip
+          name: Harbor ${{ github.ref_name }}
+          generate_release_notes: true
+          draft: false
+          prerelease: false
