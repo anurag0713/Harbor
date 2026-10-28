@@ -35,6 +35,18 @@
 
 ---
 
+## Installation & First Launch 🚀
+
+1. Download **`Harbor.zip`** from the [Latest Release](https://github.com/anurag0713/Harbor/releases).
+2. Unzip and drag `Harbor.app` into your `/Applications` folder.
+3. Open Harbor:
+   - **Where to look:** Harbor is a lightweight Menu Bar utility (`LSUIElement`). It does not appear in the Dock; look for the **ferry/ship icon** in the **top-right macOS Menu Bar** near your clock and Wi-Fi icons.
+   - **First Launch Note (Gatekeeper):** Because Harbor is open-source and not signed with an Apple Developer certificate, macOS may show an *"Apple could not verify Harbor"* warning.
+     - Either open **System Settings → Privacy & Security** and click **"Open Anyway"**.
+     - Or run: `xattr -cr /Applications/Harbor.app`
+
+---
+
 ## Requirements & Building
 
 - macOS 14.0+ (Sonoma or later)
