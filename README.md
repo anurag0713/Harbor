@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="HarborIcon.png" width="128" height="128" alt="Harbor App Icon" style="border-radius: 24px;" />
+</p>
+
 # Harbor 🚢
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)

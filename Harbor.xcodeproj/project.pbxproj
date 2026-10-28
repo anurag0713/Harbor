@@ -10,6 +10,7 @@
 		1114F3281E00B1FBAB4C389A /* TransferResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */; };
 		1A5ECDC677D10F33851FB52D /* SimulatorDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */; };
 		1EF8E1BBE8DB19A3743A76EB /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */; };
+		2CC47F452F4D6DD9F9B82DC5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EA55F19410C1810615650F50 /* Assets.xcassets */; };
 		46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D04111DCF5122FC498FAFF /* HarborApp.swift */; };
 		65FFE3F23D7060BB9D3A9886 /* SimulatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E3C662A59DB4B02EF6996 /* SimulatorService.swift */; };
 		7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */; };
@@ -41,6 +42,7 @@
 		D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSyncView.swift; sourceTree = "<group>"; };
 		E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDiscovery.swift; sourceTree = "<group>"; };
+		EA55F19410C1810615650F50 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		F4A098FA2BAEE5F46EA2760B /* Harbor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Harbor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -56,6 +58,7 @@
 		6FC53CE8C16BE25856D8A242 /* Sources */ = {
 			isa = PBXGroup;
 			children = (
+				EA55F19410C1810615650F50 /* Assets.xcassets */,
 				D3168FB726624EBE33FF163B /* Info.plist */,
 				CD9F244DFB2085CB95C83EE3 /* App */,
 				F325135CC5C2F683EA47E23D /* Models */,
@@ -124,6 +127,7 @@
 			buildConfigurationList = AA18A3D193C4C448EF1F0ED9 /* Build configuration list for PBXNativeTarget "Harbor" */;
 			buildPhases = (
 				95C0E0518523BE9E818074B0 /* Sources */,
+				C8A0BF7D5CDC9B3299ABC59F /* Resources */,
 			);
 			buildRules = (
 			);
@@ -165,6 +169,17 @@
 			);
 		};
 /* End PBXProject section */
+
+/* Begin PBXResourcesBuildPhase section */
+		C8A0BF7D5CDC9B3299ABC59F /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				2CC47F452F4D6DD9F9B82DC5 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+/* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
 		95C0E0518523BE9E818074B0 /* Sources */ = {
