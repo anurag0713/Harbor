@@ -9,21 +9,27 @@
 /* Begin PBXBuildFile section */
 		1114F3281E00B1FBAB4C389A /* TransferResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */; };
 		1A5ECDC677D10F33851FB52D /* SimulatorDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */; };
+		1EF8E1BBE8DB19A3743A76EB /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */; };
 		46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D04111DCF5122FC498FAFF /* HarborApp.swift */; };
 		65FFE3F23D7060BB9D3A9886 /* SimulatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E3C662A59DB4B02EF6996 /* SimulatorService.swift */; };
+		7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */; };
 		9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */; };
 		A15A85436434081498647C78 /* DropZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94CE74F9B38A6146ACA436B /* DropZoneView.swift */; };
+		EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */; };
 		F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B75D66C059730E173C5425 /* FileRouter.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
 		369E3C662A59DB4B02EF6996 /* SimulatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorService.swift; sourceTree = "<group>"; };
+		3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardService.swift; sourceTree = "<group>"; };
 		53B75D66C059730E173C5425 /* FileRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileRouter.swift; sourceTree = "<group>"; };
 		97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDevice.swift; sourceTree = "<group>"; };
 		A4D04111DCF5122FC498FAFF /* HarborApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarborApp.swift; sourceTree = "<group>"; };
 		B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferResult.swift; sourceTree = "<group>"; };
 		B94CE74F9B38A6146ACA436B /* DropZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropZoneView.swift; sourceTree = "<group>"; };
 		D3168FB726624EBE33FF163B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSyncView.swift; sourceTree = "<group>"; };
 		E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDiscovery.swift; sourceTree = "<group>"; };
 		F4A098FA2BAEE5F46EA2760B /* Harbor.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Harbor.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
@@ -52,6 +58,7 @@
 		A970A4786F2A8A3F6C8ED9C0 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */,
 				B94CE74F9B38A6146ACA436B /* DropZoneView.swift */,
 			);
 			path = Views;
@@ -76,7 +83,9 @@
 		F2E9E6ED4F1654A3ADAB4149 /* Services */ = {
 			isa = PBXGroup;
 			children = (
+				3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */,
 				53B75D66C059730E173C5425 /* FileRouter.swift */,
+				D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */,
 				E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */,
 				369E3C662A59DB4B02EF6996 /* SimulatorService.swift */,
 			);
@@ -147,9 +156,12 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */,
+				7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */,
 				A15A85436434081498647C78 /* DropZoneView.swift in Sources */,
 				F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */,
 				46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */,
+				1EF8E1BBE8DB19A3743A76EB /* HotkeyManager.swift in Sources */,
 				1A5ECDC677D10F33851FB52D /* SimulatorDevice.swift in Sources */,
 				9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */,
 				65FFE3F23D7060BB9D3A9886 /* SimulatorService.swift in Sources */,
