@@ -39,8 +39,7 @@ jobs:
 
       - name: Compress App
         run: |
-          cd build
-          ditto -c -k --sequoia --keepParent Harbor.app Harbor.zip
+          ditto -c -k --keepParent build/Harbor.app build/Harbor.zip
 
       - name: Create GitHub Release
         uses: softprops/action-gh-release@v2
