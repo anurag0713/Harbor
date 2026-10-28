@@ -1,5 +1,9 @@
 # Harbor 🚢
 
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Platform](https://img.shields.io/badge/Platform-macOS%2014.0%2B-black.svg)](https://apple.com)
+[![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](https://swift.org)
+
 > A lightweight macOS Menu Bar companion for Xcode Device Hub.
 > Bridges the gap between macOS and simulator runtimes with instant drag-and-drop file imports, bidirectional clipboard synchronization, and host keyboard shortcut restoration.
 
@@ -44,5 +48,22 @@ xcodebuild -project Harbor.xcodeproj -scheme Harbor build CODE_SIGNING_ALLOWED=N
 
 ---
 
+## Contributing 🤝
+
+Contributions are very welcome! Whether it’s reporting a bug, proposing a new feature to fix another Device Hub quirk, or submitting a pull request, your input helps make simulator testing smoother for everyone.
+
+### How to Contribute:
+1. **Feature Requests & Ideas**: Have an idea or facing a Device Hub pain point not yet covered? Please [open an issue](https://github.com/anurag0713/Harbor/issues) describing the problem and what workflow it would improve.
+2. **Bug Reports**: Found a bug? Open an issue with details about your macOS version, Xcode version, and steps to reproduce.
+3. **Pull Requests**:
+   - Fork the repository.
+   - Create your feature branch (`git checkout -b feature/amazing-feature`).
+   - Commit your changes (`git commit -m 'feat: add support for XYZ'`).
+   - Push to your branch (`git push origin feature/amazing-feature`).
+   - Open a Pull Request.
+
+---
+
 ## License
-MIT License. Copyright © 2026 Anurag Singh.
+
+This project is licensed under the MIT License — see the [LICENSE](LICENSE) file for details.
