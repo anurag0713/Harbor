@@ -52,6 +52,38 @@ public final class SimulatorService {
         return (outString, errString, status)
     }
 
+    /// Fixes stuck Shift / modifier keys when switching between multiple simulators in Device Hub
+    public func resetKeyboardFocus(deviceUDID: String? = nil) async -> TransferResult {
+        // 1. Cycle hardware keyboard connection (⌘⇧K twice) via AppleScript if Simulator is active
+        let script = """
+        tell application "System Events"
+            if exists (process "Simulator") then
+                tell process "Simulator"
+                    set frontmost to true
+                    keystroke "k" using {command down, shift down}
+                    delay 0.1
+                    keystroke "k" using {command down, shift down}
+                end tell
+            end if
+        end tell
+        """
+
+        var errorInfo: NSDictionary?
+        if let appleScript = NSAppleScript(source: script) {
+            appleScript.executeAndReturnError(&errorInfo)
+        }
+
+        // 2. Re-assert key window focus for the selected device
+        if let udid = deviceUDID, udid != "booted", !udid.isEmpty {
+            let process = Process()
+            process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+            process.arguments = ["-a", "Simulator", "--args", "-CurrentDeviceUDID", udid]
+            try? process.run()
+        }
+
+        return .success("Keyboard & Shift state reset")
+    }
+
     /// Prepares files in an unprotected temporary staging folder to avoid TCC sandboxing issues (e.g. ~/Downloads)
     public func withStagedFiles<T>(
         _ sources: [URL],

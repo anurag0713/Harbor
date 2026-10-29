@@ -12,7 +12,7 @@ public struct MenuBarPopoverView: View {
             HStack {
                 HStack(spacing: 6) {
                     Image(systemName: "ferry.fill")
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(.white)
                         .font(.system(size: 15))
                     Text("Harbor")
                         .font(.system(size: 14, weight: .bold))
@@ -77,11 +77,11 @@ public struct MenuBarPopoverView: View {
                 HStack(spacing: 8) {
                     ZStack {
                         Circle()
-                            .fill(Color.accentColor.opacity(0.15))
+                            .fill(Color.accentColor.opacity(0.2))
                             .frame(width: 28, height: 28)
                         Image(systemName: widgetController.isVisible ? "pip.exit" : "pip.enter")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.accentColor)
+                            .foregroundColor(.white)
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
@@ -116,6 +116,11 @@ public struct MenuBarPopoverView: View {
 
             // Feature 2: Clipboard Sync
             ClipboardSyncView()
+
+            Divider()
+
+            // Feature 3: Simulator Keyboard Fix
+            KeyboardResetView()
 
             Divider()
 

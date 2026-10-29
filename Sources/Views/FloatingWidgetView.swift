@@ -69,7 +69,7 @@ public struct FloatingWidgetView: View {
                 HStack(spacing: 6) {
                     Image(systemName: "ferry.fill")
                         .font(.system(size: 13, weight: .bold))
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(.white)
 
                     Text("Harbor Drop")
                         .font(.system(size: 12, weight: .semibold))
@@ -176,6 +176,18 @@ public struct FloatingWidgetView: View {
             .controlSize(.small)
 
             Spacer()
+
+            Button(action: {
+                Task {
+                    _ = await SimulatorService.shared.resetKeyboardFocus(deviceUDID: discovery.targetDeviceIdentifier)
+                }
+            }) {
+                Image(systemName: "keyboard")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Fix stuck Shift/modifier keys on simulator")
 
             Button(action: { discovery.refresh() }) {
                 Image(systemName: "arrow.clockwise")
