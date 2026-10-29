@@ -184,6 +184,22 @@ public final class SimulatorService {
         try openProcess.run()
     }
 
+    /// Opens a web link or app deep link (e.g. myapp://...) on the simulator via `simctl openurl`
+    public func openURL(device: String = "booted", url: URL) async -> TransferResult {
+        do {
+            try await bootIfNeeded(deviceUDID: device)
+            let result = try await runXcrun(arguments: ["simctl", "openurl", device, url.absoluteString])
+            if result.exitCode == 0 {
+                return .success("Opened link in simulator")
+            } else {
+                let err = Self.conciseMessage(result.error)
+                return .failure(err.isEmpty ? "Failed to open link" : err)
+            }
+        } catch {
+            return .failure(error.localizedDescription)
+        }
+    }
+
     /// Install an .app bundle onto the simulator via `simctl install`
     public func installApp(device: String = "booted", fileURL: URL) async -> TransferResult {
         do {

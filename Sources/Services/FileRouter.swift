@@ -14,21 +14,34 @@ public final class FileRouter {
         case appBundle([URL])
         case media([URL])
         case apnsPayload(URL)
+        case link([URL])
         case generalDocument([URL])
     }
 
     public func categorize(urls: [URL]) -> [FileCategory] {
         var apps: [URL] = []
         var media: [URL] = []
+        var links: [URL] = []
         var others: [URL] = []
         var apns: [URL] = []
 
         for url in urls {
+            if !url.isFileURL {
+                links.append(url)
+                continue
+            }
+
             let ext = url.pathExtension.lowercased()
             if ext == "app" {
                 apps.append(url)
             } else if ext == "apns" {
                 apns.append(url)
+            } else if ext == "webloc" || ext == "url" {
+                if let extracted = extractURLFromShortcutFile(url: url) {
+                    links.append(extracted)
+                } else {
+                    others.append(url)
+                }
             } else if mediaExtensions.contains(ext) {
                 media.append(url)
             } else {
@@ -45,6 +58,9 @@ public final class FileRouter {
         }
         for apnsURL in apns {
             categories.append(.apnsPayload(apnsURL))
+        }
+        if !links.isEmpty {
+            categories.append(.link(links))
         }
         if !others.isEmpty {
             categories.append(.generalDocument(others))
@@ -96,6 +112,13 @@ public final class FileRouter {
                     }
                 }
 
+            case .link(let linkURLs):
+                for linkURL in linkURLs {
+                    let result = await SimulatorService.shared.openURL(device: targetDevice, url: linkURL)
+                    messages.append(result.message)
+                    if !result.isSuccess { allSucceeded = false }
+                }
+
             case .generalDocument(let docURLs):
                 if let bundleId = targetBundleId, !bundleId.isEmpty {
                     let result = await SimulatorService.shared.copyFilesToApp(device: targetDevice, bundleId: bundleId, fileURLs: docURLs)
@@ -112,6 +135,29 @@ public final class FileRouter {
 
         let summary = messages.joined(separator: " • ")
         return allSucceeded ? .success(summary) : .failure(summary)
+    }
+
+    private func extractURLFromShortcutFile(url: URL) -> URL? {
+        if let data = try? Data(contentsOf: url) {
+            // Check if .webloc plist
+            if let plist = try? PropertyListSerialization.propertyList(from: data, format: nil) as? [String: Any],
+               let str = plist["URL"] as? String,
+               let target = URL(string: str) {
+                return target
+            }
+            // Check if INI-style .url file
+            if let str = String(data: data, encoding: .utf8) {
+                for line in str.split(whereSeparator: \.isNewline) {
+                    if line.uppercased().hasPrefix("URL=") {
+                        let targetStr = String(line.dropFirst(4)).trimmingCharacters(in: .whitespacesAndNewlines)
+                        if let target = URL(string: targetStr) {
+                            return target
+                        }
+                    }
+                }
+            }
+        }
+        return nil
     }
 
     private func extractBundleIdFromAPNS(url: URL) -> String? {

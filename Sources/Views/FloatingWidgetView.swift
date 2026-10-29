@@ -7,6 +7,8 @@ public struct FloatingWidgetView: View {
     @ObservedObject var controller = FloatingWidgetController.shared
 
     @State private var isTargeted: Bool = false
+    @State private var isShowingLinkPrompt: Bool = false
+    @State private var linkInputText: String = ""
 
     public init() {}
 
@@ -52,9 +54,20 @@ public struct FloatingWidgetView: View {
                 )
         )
         .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
-        .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
+        .onDrop(of: [.fileURL, .url], isTargeted: $isTargeted) { providers in
             handleDrop(providers: providers)
             return true
+        }
+        .alert("Open Link in Simulator", isPresented: $isShowingLinkPrompt) {
+            TextField("myapp://path or https://...", text: $linkInputText)
+            Button("Add to Queue") {
+                addLink(linkInputText)
+            }
+            Button("Cancel", role: .cancel) {
+                linkInputText = ""
+            }
+        } message: {
+            Text("Opens deep links, OAuth callbacks, or web URLs directly in the simulator.")
         }
     }
 
@@ -219,6 +232,21 @@ public struct FloatingWidgetView: View {
             Text("Queue multiple files and send together")
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
+
+            Button(action: { isShowingLinkPrompt = true }) {
+                HStack(spacing: 4) {
+                    Image(systemName: "link")
+                        .font(.system(size: 10))
+                    Text("Add Link / Deep Link")
+                        .font(.system(size: 11, weight: .medium))
+                }
+                .padding(.horizontal, 8)
+                .padding(.vertical, 4)
+                .background(Color.primary.opacity(0.06))
+                .cornerRadius(6)
+            }
+            .buttonStyle(.plain)
+            .padding(.top, 4)
         }
         .frame(maxWidth: .infinity)
         .frame(height: 180)
@@ -251,14 +279,25 @@ public struct FloatingWidgetView: View {
             .frame(height: 180)
 
             // Mini drop strip below queue to add more
-            HStack(spacing: 4) {
-                Image(systemName: "plus.circle")
-                    .font(.system(size: 10))
-                Text("Drop more files to add to queue")
-                    .font(.system(size: 10))
+            HStack(spacing: 6) {
+                HStack(spacing: 4) {
+                    Image(systemName: "plus.circle")
+                        .font(.system(size: 10))
+                    Text("Drop more files")
+                        .font(.system(size: 10))
+                }
+                .foregroundColor(.secondary)
+
+                Spacer()
+
+                Button("+ Link") {
+                    isShowingLinkPrompt = true
+                }
+                .buttonStyle(.plain)
+                .font(.system(size: 10, weight: .semibold))
+                .foregroundColor(.accentColor)
             }
-            .foregroundColor(.secondary)
-            .frame(maxWidth: .infinity)
+            .padding(.horizontal, 8)
             .padding(.vertical, 4)
             .background(
                 RoundedRectangle(cornerRadius: 6)
@@ -369,5 +408,12 @@ public struct FloatingWidgetView: View {
                 }
             }
         }
+    }
+
+    private func addLink(_ text: String) {
+        let trimmed = text.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard let url = URL(string: trimmed), url.scheme != nil else { return }
+        queue.add(urls: [url])
+        linkInputText = ""
     }
 }

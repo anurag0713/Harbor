@@ -18,6 +18,7 @@
 ### 1. 📦 Multi-File Drag & Drop Routing
 - **Media (Images & Videos)**: Drag `.jpg`, `.png`, `.heic`, `.mp4`, `.mov`, etc. onto Harbor's floating drop window to import directly into the simulator's Photos library via `xcrun simctl addmedia`.
 - **App Bundles (`.app`)**: Drag built `.app` bundles to instantly install them via `xcrun simctl install`.
+- **Deep Links & Web URLs**: Drop `.webloc` files or add `myapp://path` / web links to open directly in the simulator via `xcrun simctl openurl`.
 - **Push Notifications (`.apns`)**: Drop an `.apns` JSON payload; Harbor detects the `"Simulator Target Bundle"` and fires a simulated push notification.
 - **Documents & Raw Files**: Direct routing into the active app's `Documents` sandbox container.
 
