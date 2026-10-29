@@ -3,69 +3,308 @@ import UniformTypeIdentifiers
 
 public struct FloatingWidgetView: View {
     @ObservedObject var discovery = SimulatorDiscovery.shared
+    @ObservedObject var queue = QueueManager.shared
+    @ObservedObject var controller = FloatingWidgetController.shared
+
     @State private var isTargeted: Bool = false
-    @State private var statusMessage: String?
-    @State private var isSuccess: Bool = true
 
     public init() {}
 
     public var body: some View {
-        HStack(spacing: 10) {
-            ZStack {
-                Circle()
-                    .fill(isTargeted ? Color.accentColor : Color.primary.opacity(0.08))
-                    .frame(width: 38, height: 38)
+        VStack(spacing: 0) {
+            // Header Bar / Drag Handle
+            headerBar
 
-                Image(systemName: isTargeted ? "arrow.down" : "ferry.fill")
-                    .font(.system(size: 16, weight: .bold))
-                    .foregroundColor(isTargeted ? .white : .primary)
-            }
+            if !controller.isCollapsed {
+                Divider()
+                    .opacity(0.3)
 
-            VStack(alignment: .leading, spacing: 2) {
-                if let status = statusMessage {
-                    Text(status)
-                        .font(.system(size: 11, weight: .semibold))
-                        .foregroundColor(isSuccess ? .green : .red)
-                        .lineLimit(1)
-                } else {
-                    Text("Harbor Drop")
-                        .font(.system(size: 12, weight: .semibold))
-                    Text(discovery.selectedDeviceDisplayName)
-                        .font(.system(size: 10))
-                        .foregroundColor(.secondary)
-                        .lineLimit(1)
+                // Expanded content
+                VStack(spacing: 10) {
+                    // Simulator Target Strip
+                    simulatorTargetStrip
+
+                    // Queue or Empty Drop Zone
+                    if queue.items.isEmpty {
+                        emptyDropArea
+                    } else {
+                        queueListView
+                    }
+
+                    // Footer actions
+                    footerActionBar
                 }
+                .padding(12)
+                .transition(.opacity.combined(with: .move(edge: .top)))
             }
-
-            Spacer(minLength: 0)
-
-            Button(action: {
-                FloatingWidgetController.shared.hide()
-            }) {
-                Image(systemName: "xmark.circle.fill")
-                    .foregroundColor(.secondary.opacity(0.6))
-                    .font(.system(size: 14))
-            }
-            .buttonStyle(.plain)
         }
-        .padding(.horizontal, 12)
-        .padding(.vertical, 10)
-        .frame(width: 210, height: 60)
+        .frame(width: FloatingWidgetPanel.panelWidth)
         .background(
             VisualEffectBackground()
-                .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
+                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
                 .overlay(
-                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                    RoundedRectangle(cornerRadius: 14, style: .continuous)
                         .stroke(isTargeted ? Color.accentColor : Color.white.opacity(0.2), lineWidth: isTargeted ? 2 : 1)
                 )
         )
-        .shadow(color: Color.black.opacity(0.15), radius: 8, x: 0, y: 4)
+        .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             handleDrop(providers: providers)
             return true
         }
     }
 
+    // MARK: - Header Bar
+    private var headerBar: some View {
+        ZStack {
+            // Native Window Drag Handle (covers whole header)
+            WindowDragHandle()
+
+            HStack(spacing: 8) {
+                // Icon & Title
+                HStack(spacing: 6) {
+                    Image(systemName: "ferry.fill")
+                        .font(.system(size: 13, weight: .bold))
+                        .foregroundColor(.accentColor)
+
+                    Text("Harbor Drop")
+                        .font(.system(size: 12, weight: .semibold))
+                }
+
+                // If collapsed or items present, show count badge
+                if !queue.items.isEmpty {
+                    Text("\(queue.items.count)")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.white)
+                        .padding(.horizontal, 6)
+                        .padding(.vertical, 2)
+                        .background(Capsule().fill(Color.accentColor))
+                }
+
+                Spacer()
+
+                // Quick Send Button if collapsed and has items
+                if controller.isCollapsed && !queue.items.isEmpty {
+                    Button(action: {
+                        Task {
+                            await queue.sendAll(targetDevice: discovery.targetDeviceIdentifier)
+                        }
+                    }) {
+                        HStack(spacing: 4) {
+                            if queue.isSending {
+                                ProgressView()
+                                    .controlSize(.mini)
+                            } else {
+                                Image(systemName: "paperplane.fill")
+                                    .font(.system(size: 10))
+                                Text("Send")
+                                    .font(.system(size: 11, weight: .semibold))
+                            }
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(Color.accentColor)
+                        .foregroundColor(.white)
+                        .cornerRadius(6)
+                    }
+                    .buttonStyle(.plain)
+                    .disabled(queue.isSending)
+                }
+
+                // Collapse / Expand Button (Sticky notes style)
+                Button(action: {
+                    withAnimation(.easeInOut(duration: 0.2)) {
+                        controller.toggleCollapsed()
+                    }
+                }) {
+                    Image(systemName: controller.isCollapsed ? "chevron.down" : "chevron.up")
+                        .font(.system(size: 11, weight: .bold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 20, height: 20)
+                        .background(Circle().fill(Color.primary.opacity(0.06)))
+                }
+                .buttonStyle(.plain)
+                .help(controller.isCollapsed ? "Expand Queue" : "Collapse to Bar")
+
+                // Close Button
+                Button(action: {
+                    controller.hide()
+                }) {
+                    Image(systemName: "xmark")
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.secondary)
+                        .frame(width: 20, height: 20)
+                        .background(Circle().fill(Color.primary.opacity(0.06)))
+                }
+                .buttonStyle(.plain)
+                .help("Close Window")
+            }
+            .padding(.horizontal, 10)
+        }
+        .frame(height: FloatingWidgetPanel.collapsedHeight)
+    }
+
+    // MARK: - Simulator Target Strip
+    private var simulatorTargetStrip: some View {
+        HStack(spacing: 6) {
+            Circle()
+                .fill(discovery.bootedDevices.isEmpty ? Color.orange : Color.green)
+                .frame(width: 7, height: 7)
+
+            Text(discovery.selectedDeviceDisplayName)
+                .font(.system(size: 11, weight: .medium))
+                .foregroundColor(.primary)
+                .lineLimit(1)
+
+            Spacer()
+
+            Button(action: { discovery.refresh() }) {
+                Image(systemName: "arrow.clockwise")
+                    .font(.system(size: 10))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Refresh Simulators")
+        }
+        .padding(.horizontal, 8)
+        .padding(.vertical, 5)
+        .background(
+            RoundedRectangle(cornerRadius: 8)
+                .fill(Color.primary.opacity(0.04))
+        )
+    }
+
+    // MARK: - Empty Drop Area
+    private var emptyDropArea: some View {
+        VStack(spacing: 8) {
+            Image(systemName: isTargeted ? "arrow.down.circle.fill" : "plus.rectangle.on.folder.fill")
+                .font(.system(size: 28))
+                .foregroundColor(isTargeted ? .accentColor : .secondary.opacity(0.8))
+
+            Text(isTargeted ? "Drop to add to queue" : "Drop Files, Photos, or .app")
+                .font(.system(size: 12, weight: .medium))
+                .foregroundColor(.primary)
+
+            Text("Queue multiple files and send together")
+                .font(.system(size: 10))
+                .foregroundColor(.secondary)
+        }
+        .frame(maxWidth: .infinity)
+        .frame(height: 180)
+        .background(
+            RoundedRectangle(cornerRadius: 10)
+                .strokeBorder(
+                    isTargeted ? Color.accentColor : Color.secondary.opacity(0.3),
+                    style: StrokeStyle(lineWidth: isTargeted ? 2 : 1, dash: [5])
+                )
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.primary.opacity(0.02))
+                )
+        )
+    }
+
+    // MARK: - Queue List View
+    private var queueListView: some View {
+        VStack(spacing: 6) {
+            ScrollView {
+                LazyVStack(spacing: 6) {
+                    ForEach(queue.items) { item in
+                        QueueItemRow(item: item) {
+                            queue.remove(id: item.id)
+                        }
+                    }
+                }
+                .padding(.vertical, 2)
+            }
+            .frame(height: 180)
+
+            // Mini drop strip below queue to add more
+            HStack(spacing: 4) {
+                Image(systemName: "plus.circle")
+                    .font(.system(size: 10))
+                Text("Drop more files to add to queue")
+                    .font(.system(size: 10))
+            }
+            .foregroundColor(.secondary)
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 4)
+            .background(
+                RoundedRectangle(cornerRadius: 6)
+                    .strokeBorder(Color.secondary.opacity(0.2), style: StrokeStyle(lineWidth: 1, dash: [4]))
+            )
+        }
+    }
+
+    // MARK: - Footer Action Bar
+    private var footerActionBar: some View {
+        VStack(spacing: 6) {
+            if let status = queue.statusMessage {
+                HStack(spacing: 4) {
+                    Image(systemName: queue.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
+                        .font(.system(size: 10))
+                        .foregroundColor(queue.isSuccess ? .green : .red)
+                    Text(status)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(queue.isSuccess ? .green : .red)
+                        .lineLimit(1)
+                }
+            }
+
+            HStack(spacing: 8) {
+                if !queue.items.isEmpty {
+                    Button("Clear") {
+                        queue.clear()
+                    }
+                    .font(.system(size: 11))
+                    .buttonStyle(.plain)
+                    .foregroundColor(.secondary)
+                    .disabled(queue.isSending)
+                }
+
+                Spacer()
+
+                Button(action: {
+                    Task {
+                        await queue.sendAll(targetDevice: discovery.targetDeviceIdentifier)
+                    }
+                }) {
+                    HStack(spacing: 5) {
+                        if queue.isSending {
+                            ProgressView()
+                                .controlSize(.small)
+                        } else {
+                            Image(systemName: "paperplane.fill")
+                                .font(.system(size: 11))
+                        }
+                        Text(sendButtonTitle)
+                            .font(.system(size: 12, weight: .semibold))
+                    }
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 6)
+                    .background(queue.items.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor)
+                    .foregroundColor(.white)
+                    .cornerRadius(8)
+                }
+                .buttonStyle(.plain)
+                .disabled(queue.items.isEmpty || queue.isSending)
+            }
+        }
+    }
+
+    private var sendButtonTitle: String {
+        if queue.isSending {
+            return "Sending..."
+        }
+        let count = queue.items.count
+        if count <= 1 {
+            return "Send to Simulator"
+        } else {
+            return "Send \(count) Items"
+        }
+    }
+
+    // MARK: - Drop Handler
     private func handleDrop(providers: [NSItemProvider]) {
         var collectedURLs: [URL] = []
         let group = DispatchGroup()
@@ -82,18 +321,12 @@ public struct FloatingWidgetView: View {
 
         group.notify(queue: .main) {
             guard !collectedURLs.isEmpty else { return }
-            self.statusMessage = "Importing..."
-            self.isSuccess = true
+            self.queue.add(urls: collectedURLs)
 
-            Task {
-                let targetUDID = discovery.targetDeviceIdentifier
-                let result = await FileRouter.shared.routeAndTransfer(urls: collectedURLs, targetDevice: targetUDID)
-                await MainActor.run {
-                    self.statusMessage = result.isSuccess ? "Imported!" : "Failed"
-                    self.isSuccess = result.isSuccess
-                    DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
-                        self.statusMessage = nil
-                    }
+            // Auto-expand if collapsed so user sees queued items
+            if self.controller.isCollapsed {
+                withAnimation(.easeInOut(duration: 0.2)) {
+                    self.controller.isCollapsed = false
                 }
             }
         }

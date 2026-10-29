@@ -12,27 +12,35 @@
 		1EF8E1BBE8DB19A3743A76EB /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */; };
 		2CC47F452F4D6DD9F9B82DC5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EA55F19410C1810615650F50 /* Assets.xcassets */; };
 		46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D04111DCF5122FC498FAFF /* HarborApp.swift */; };
+		47003B974B4BFB35AE304C46 /* QueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB09FDCF294D15F4CF623DB /* QueueManager.swift */; };
+		529470BD3C81E6F22D6A6723 /* WindowDragHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF8872DD1A7B816077B7F6F /* WindowDragHandle.swift */; };
 		65FFE3F23D7060BB9D3A9886 /* SimulatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E3C662A59DB4B02EF6996 /* SimulatorService.swift */; };
 		7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */; };
 		745486DBE06BB71381C18415 /* FloatingWidgetPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B917B290BF30B18F7775114 /* FloatingWidgetPanel.swift */; };
 		7B92A524D12457D8FE902F71 /* ShortcutFixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182FE35AE6732A8CE97D48A8 /* ShortcutFixView.swift */; };
 		94D5B38CF250E28F76BFEC70 /* FloatingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */; };
 		9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */; };
+		A17936B543EA4EC5953DDC46 /* QueueItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EA198E7D66E088343D0B7BF /* QueueItemRow.swift */; };
 		A5080F78A418010436A8208F /* DefaultsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28062A429ED29B48AE23314C /* DefaultsService.swift */; };
+		E3D7C2D7C8F48B343E199B3E /* QueueItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD8EB95BDDEABFDEA53F7EE /* QueueItem.swift */; };
 		EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */; };
 		F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B75D66C059730E173C5425 /* FileRouter.swift */; };
 		F626DE3C380CC04527823F58 /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499D3C9FC6585CB428B111B2 /* MenuBarPopoverView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
+		0EA198E7D66E088343D0B7BF /* QueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueItemRow.swift; sourceTree = "<group>"; };
 		182FE35AE6732A8CE97D48A8 /* ShortcutFixView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShortcutFixView.swift; sourceTree = "<group>"; };
 		28062A429ED29B48AE23314C /* DefaultsService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DefaultsService.swift; sourceTree = "<group>"; };
 		369E3C662A59DB4B02EF6996 /* SimulatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorService.swift; sourceTree = "<group>"; };
 		3B917B290BF30B18F7775114 /* FloatingWidgetPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingWidgetPanel.swift; sourceTree = "<group>"; };
 		3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardService.swift; sourceTree = "<group>"; };
 		499D3C9FC6585CB428B111B2 /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
+		4DB09FDCF294D15F4CF623DB /* QueueManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueManager.swift; sourceTree = "<group>"; };
 		53B75D66C059730E173C5425 /* FileRouter.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FileRouter.swift; sourceTree = "<group>"; };
+		7DD8EB95BDDEABFDEA53F7EE /* QueueItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueItem.swift; sourceTree = "<group>"; };
 		88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingWidgetView.swift; sourceTree = "<group>"; };
+		8BF8872DD1A7B816077B7F6F /* WindowDragHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowDragHandle.swift; sourceTree = "<group>"; };
 		97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDevice.swift; sourceTree = "<group>"; };
 		A4D04111DCF5122FC498FAFF /* HarborApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarborApp.swift; sourceTree = "<group>"; };
 		B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferResult.swift; sourceTree = "<group>"; };
@@ -73,7 +81,9 @@
 				3B917B290BF30B18F7775114 /* FloatingWidgetPanel.swift */,
 				88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */,
 				499D3C9FC6585CB428B111B2 /* MenuBarPopoverView.swift */,
+				0EA198E7D66E088343D0B7BF /* QueueItemRow.swift */,
 				182FE35AE6732A8CE97D48A8 /* ShortcutFixView.swift */,
+				8BF8872DD1A7B816077B7F6F /* WindowDragHandle.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -101,6 +111,7 @@
 				28062A429ED29B48AE23314C /* DefaultsService.swift */,
 				53B75D66C059730E173C5425 /* FileRouter.swift */,
 				D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */,
+				4DB09FDCF294D15F4CF623DB /* QueueManager.swift */,
 				E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */,
 				369E3C662A59DB4B02EF6996 /* SimulatorService.swift */,
 			);
@@ -110,6 +121,7 @@
 		F325135CC5C2F683EA47E23D /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				7DD8EB95BDDEABFDEA53F7EE /* QueueItem.swift */,
 				97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */,
 				B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */,
 			);
@@ -192,11 +204,15 @@
 				46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */,
 				1EF8E1BBE8DB19A3743A76EB /* HotkeyManager.swift in Sources */,
 				F626DE3C380CC04527823F58 /* MenuBarPopoverView.swift in Sources */,
+				E3D7C2D7C8F48B343E199B3E /* QueueItem.swift in Sources */,
+				A17936B543EA4EC5953DDC46 /* QueueItemRow.swift in Sources */,
+				47003B974B4BFB35AE304C46 /* QueueManager.swift in Sources */,
 				7B92A524D12457D8FE902F71 /* ShortcutFixView.swift in Sources */,
 				1A5ECDC677D10F33851FB52D /* SimulatorDevice.swift in Sources */,
 				9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */,
 				65FFE3F23D7060BB9D3A9886 /* SimulatorService.swift in Sources */,
 				1114F3281E00B1FBAB4C389A /* TransferResult.swift in Sources */,
+				529470BD3C81E6F22D6A6723 /* WindowDragHandle.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
