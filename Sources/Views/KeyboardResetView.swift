@@ -3,7 +3,7 @@ import SwiftUI
 public struct KeyboardResetView: View {
     @ObservedObject var discovery = SimulatorDiscovery.shared
     @State private var isResetting: Bool = false
-    @State private var statusFeedback: String?
+    @State private var statusFeedback: (message: String, isSuccess: Bool)?
 
     public init() {}
 
@@ -49,12 +49,12 @@ public struct KeyboardResetView: View {
 
             if let feedback = statusFeedback {
                 HStack(spacing: 4) {
-                    Image(systemName: "checkmark.circle.fill")
+                    Image(systemName: feedback.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
                         .font(.system(size: 10))
-                        .foregroundColor(.green)
-                    Text(feedback)
+                        .foregroundColor(feedback.isSuccess ? .green : .red)
+                    Text(feedback.message)
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundColor(.green)
+                        .foregroundColor(feedback.isSuccess ? .green : .red)
                 }
                 .transition(.opacity)
             }
@@ -67,7 +67,7 @@ public struct KeyboardResetView: View {
             let res = await SimulatorService.shared.resetKeyboardFocus(deviceUDID: discovery.targetDeviceIdentifier)
             await MainActor.run {
                 isResetting = false
-                statusFeedback = res.message
+                statusFeedback = (message: res.message, isSuccess: res.isSuccess)
                 DispatchQueue.main.asyncAfter(deadline: .now() + 2.5) {
                     withAnimation {
                         statusFeedback = nil
