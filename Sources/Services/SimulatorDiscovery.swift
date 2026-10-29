@@ -40,7 +40,7 @@ public final class SimulatorDiscovery: ObservableObject {
                     var booted: [SimulatorDevice] = []
                     var groupedByRuntime: [String: [SimulatorDevice]] = [:]
 
-                    // Only support iOS simulators (matching SimParcel)
+                    // Only support iOS simulators
                     for (runtimeKey, devices) in decoded.devices {
                         let prefix = "com.apple.CoreSimulator.SimRuntime."
                         guard runtimeKey.hasPrefix(prefix) else { continue }

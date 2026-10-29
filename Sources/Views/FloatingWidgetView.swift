@@ -40,14 +40,18 @@ public struct FloatingWidgetView: View {
         }
         .frame(width: FloatingWidgetPanel.panelWidth)
         .background(
-            VisualEffectBackground()
-                .clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous))
+            RoundedRectangle(cornerRadius: 16, style: .continuous)
+                .fill(.ultraThinMaterial)
                 .overlay(
-                    RoundedRectangle(cornerRadius: 14, style: .continuous)
-                        .stroke(isTargeted ? Color.accentColor : Color.white.opacity(0.2), lineWidth: isTargeted ? 2 : 1)
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .fill(Color(nsColor: .windowBackgroundColor).opacity(0.35))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 16, style: .continuous)
+                        .stroke(isTargeted ? Color.accentColor : Color.white.opacity(0.18), lineWidth: isTargeted ? 2 : 1)
                 )
         )
-        .shadow(color: Color.black.opacity(0.2), radius: 10, x: 0, y: 5)
+        .clipShape(RoundedRectangle(cornerRadius: 16, style: .continuous))
         .onDrop(of: [.fileURL], isTargeted: $isTargeted) { providers in
             handleDrop(providers: providers)
             return true
@@ -253,17 +257,25 @@ public struct FloatingWidgetView: View {
 
     // MARK: - Footer Action Bar
     private var footerActionBar: some View {
-        VStack(spacing: 6) {
+        VStack(spacing: 8) {
             if let status = queue.statusMessage {
-                HStack(spacing: 4) {
+                HStack(alignment: .top, spacing: 6) {
                     Image(systemName: queue.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .font(.system(size: 10))
+                        .font(.system(size: 11))
                         .foregroundColor(queue.isSuccess ? .green : .red)
+                        .padding(.top, 1)
+
                     Text(status)
-                        .font(.system(size: 10, weight: .medium))
+                        .font(.system(size: 11, weight: .medium))
                         .foregroundColor(queue.isSuccess ? .green : .red)
-                        .lineLimit(1)
+                        .fixedSize(horizontal: false, vertical: true)
+                        .lineLimit(4)
+                        .multilineTextAlignment(.leading)
+
+                    Spacer(minLength: 0)
                 }
+                .padding(.horizontal, 4)
+                .help(status)
             }
 
             HStack(spacing: 8) {
@@ -346,16 +358,4 @@ public struct FloatingWidgetView: View {
             }
         }
     }
-}
-
-struct VisualEffectBackground: NSViewRepresentable {
-    func makeNSView(context: Context) -> NSVisualEffectView {
-        let view = NSVisualEffectView()
-        view.material = .hudWindow
-        view.blendingMode = .behindWindow
-        view.state = .active
-        return view
-    }
-
-    func updateNSView(_ nsView: NSVisualEffectView, context: Context) {}
 }

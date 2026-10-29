@@ -46,7 +46,7 @@ public final class FloatingWidgetPanel: NSPanel {
     public static let shared = FloatingWidgetPanel()
 
     public static let panelWidth: CGFloat = 320
-    public static let expandedHeight: CGFloat = 380
+    public static let expandedHeight: CGFloat = 410
     public static let collapsedHeight: CGFloat = 44
 
     private init() {
@@ -78,7 +78,10 @@ public final class FloatingWidgetPanel: NSPanel {
             self.setFrameOrigin(NSPoint(x: x, y: y))
         }
 
-        self.contentView = NSHostingView(rootView: FloatingWidgetView())
+        let hostingView = NSHostingView(rootView: FloatingWidgetView())
+        hostingView.wantsLayer = true
+        hostingView.layer?.backgroundColor = NSColor.clear.cgColor
+        self.contentView = hostingView
     }
 
     public func savePosition() {
