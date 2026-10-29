@@ -91,6 +91,8 @@ public struct MenuBarPopoverView: View {
                         Text("Always-on-top draggable window for file imports")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
+                            .lineLimit(2)
+                            .fixedSize(horizontal: false, vertical: true)
                     }
 
                     Spacer()
@@ -136,6 +138,6 @@ public struct MenuBarPopoverView: View {
             }
         }
         .padding(14)
-        .frame(width: 300)
+        .frame(width: 320)
     }
 }
