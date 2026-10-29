@@ -11,19 +11,23 @@ public final class FileRouter {
     private init() {}
 
     public enum FileCategory {
+        case appBundle([URL])
         case media([URL])
         case apnsPayload(URL)
         case generalDocument([URL])
     }
 
     public func categorize(urls: [URL]) -> [FileCategory] {
+        var apps: [URL] = []
         var media: [URL] = []
         var others: [URL] = []
         var apns: [URL] = []
 
         for url in urls {
             let ext = url.pathExtension.lowercased()
-            if ext == "apns" {
+            if ext == "app" {
+                apps.append(url)
+            } else if ext == "apns" {
                 apns.append(url)
             } else if mediaExtensions.contains(ext) {
                 media.append(url)
@@ -33,6 +37,9 @@ public final class FileRouter {
         }
 
         var categories: [FileCategory] = []
+        if !apps.isEmpty {
+            categories.append(.appBundle(apps))
+        }
         if !media.isEmpty {
             categories.append(.media(media))
         }
@@ -56,6 +63,13 @@ public final class FileRouter {
 
         for category in categories {
             switch category {
+            case .appBundle(let appURLs):
+                for appURL in appURLs {
+                    let result = await SimulatorService.shared.installApp(device: targetDevice, fileURL: appURL)
+                    messages.append(result.message)
+                    if !result.isSuccess { allSucceeded = false }
+                }
+
             case .media(let mediaURLs):
                 let result = await SimulatorService.shared.addMedia(device: targetDevice, fileURLs: mediaURLs)
                 messages.append(result.message)

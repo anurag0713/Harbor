@@ -52,6 +52,21 @@ public final class SimulatorService {
         }
     }
 
+    /// Install an .app bundle onto the simulator via `simctl install`
+    public func installApp(device: String = "booted", fileURL: URL) async -> TransferResult {
+        do {
+            let result = try await runXcrun(arguments: ["simctl", "install", device, fileURL.path])
+            if result.exitCode == 0 {
+                return .success("Installed \(fileURL.lastPathComponent)")
+            } else {
+                let err = result.error.trimmingCharacters(in: .whitespacesAndNewlines)
+                return .failure(err.isEmpty ? "Failed to install app (code \(result.exitCode))" : err)
+            }
+        } catch {
+            return .failure(error.localizedDescription)
+        }
+    }
+
     /// Add media files (images/videos) into the simulator photo library
     public func addMedia(device: String = "booted", fileURLs: [URL]) async -> TransferResult {
         guard !fileURLs.isEmpty else {
