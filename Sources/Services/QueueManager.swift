@@ -10,16 +10,47 @@ public final class QueueManager: ObservableObject {
     @Published public private(set) var isSending: Bool = false
     @Published public private(set) var statusMessage: String?
     @Published public private(set) var isSuccess: Bool = true
+    @Published public private(set) var completedCount: Int = 0
+    @Published public private(set) var totalCount: Int = 0
 
     private init() {}
 
     public func add(urls: [URL]) {
-        for url in urls {
+        let expanded = expandDirectories(urls)
+        for url in expanded {
             // Avoid duplicate path
             if !items.contains(where: { $0.url.standardizedFileURL == url.standardizedFileURL }) {
                 items.append(QueueItem(url: url))
             }
         }
+    }
+
+    private func expandDirectories(_ urls: [URL]) -> [URL] {
+        var result: [URL] = []
+        let fm = FileManager.default
+
+        for url in urls {
+            var isDir: ObjCBool = false
+            if fm.fileExists(atPath: url.path, isDirectory: &isDir), isDir.boolValue {
+                // If it is an .app bundle or package, do NOT expand inside it
+                let ext = url.pathExtension.lowercased()
+                if ext == "app" || ext == "framework" {
+                    result.append(url)
+                    continue
+                }
+                // Recursively gather files
+                if let enumerator = fm.enumerator(at: url, includingPropertiesForKeys: [.isRegularFileKey], options: [.skipsHiddenFiles, .skipsPackageDescendants]) {
+                    for case let fileURL as URL in enumerator {
+                        if let res = try? fileURL.resourceValues(forKeys: [.isRegularFileKey]), res.isRegularFile == true {
+                            result.append(fileURL)
+                        }
+                    }
+                }
+            } else {
+                result.append(url)
+            }
+        }
+        return result
     }
 
     public func remove(id: UUID) {
@@ -37,6 +68,8 @@ public final class QueueManager: ObservableObject {
         guard !items.isEmpty, !isSending else { return }
 
         isSending = true
+        totalCount = items.count
+        completedCount = 0
         statusMessage = "Sending \(items.count) item(s)..."
         isSuccess = true
 
@@ -52,6 +85,7 @@ public final class QueueManager: ObservableObject {
 
         isSending = false
         isSuccess = result.isSuccess
+        completedCount = totalCount
         statusMessage = result.message
 
         if result.isSuccess {
