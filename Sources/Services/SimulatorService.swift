@@ -8,48 +8,93 @@ public final class SimulatorService {
     /// Executes `xcrun` with arguments asynchronously
     @discardableResult
     public func runXcrun(arguments: [String], inputData: Data? = nil) async throws -> (output: String, error: String, exitCode: Int32) {
-        return try await withCheckedThrowingContinuation { continuation in
-            DispatchQueue.global(qos: .userInitiated).async {
-                let process = Process()
-                process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
-                process.arguments = arguments
+        let process = Process()
+        process.executableURL = URL(fileURLWithPath: "/usr/bin/xcrun")
+        process.arguments = arguments
 
-                let outputPipe = Pipe()
-                let errorPipe = Pipe()
-                process.standardOutput = outputPipe
-                process.standardError = errorPipe
+        let outputPipe = Pipe()
+        let errorPipe = Pipe()
+        process.standardOutput = outputPipe
+        process.standardError = errorPipe
 
-                if let inputData = inputData {
-                    let inputPipe = Pipe()
-                    process.standardInput = inputPipe
-                    do {
-                        try process.run()
-                        inputPipe.fileHandleForWriting.write(inputData)
-                        inputPipe.fileHandleForWriting.closeFile()
-                    } catch {
-                        continuation.resume(throwing: error)
-                        return
-                    }
-                } else {
-                    do {
-                        try process.run()
-                    } catch {
-                        continuation.resume(throwing: error)
-                        return
-                    }
-                }
-
-                process.waitUntilExit()
-
-                let outData = outputPipe.fileHandleForReading.readDataToEndOfFile()
-                let errData = errorPipe.fileHandleForReading.readDataToEndOfFile()
-
-                let outString = String(data: outData, encoding: .utf8) ?? ""
-                let errString = String(data: errData, encoding: .utf8) ?? ""
-
-                continuation.resume(returning: (outString, errString, process.terminationStatus))
+        if let inputData = inputData {
+            let inputPipe = Pipe()
+            process.standardInput = inputPipe
+            do {
+                try process.run()
+                inputPipe.fileHandleForWriting.write(inputData)
+                try? inputPipe.fileHandleForWriting.close()
+            } catch {
+                throw error
+            }
+        } else {
+            process.standardInput = FileHandle.nullDevice
+            do {
+                try process.run()
+            } catch {
+                throw error
             }
         }
+
+        async let outData = outputPipe.fileHandleForReading.readDataToEndOfFile()
+        async let errData = errorPipe.fileHandleForReading.readDataToEndOfFile()
+
+        let status: Int32 = await withCheckedContinuation { continuation in
+            process.terminationHandler = { proc in
+                continuation.resume(returning: proc.terminationStatus)
+            }
+        }
+
+        let (outBytes, errBytes) = await (outData, errData)
+        let outString = String(data: outBytes, encoding: .utf8) ?? ""
+        let errString = String(data: errBytes, encoding: .utf8) ?? ""
+
+        return (outString, errString, status)
+    }
+
+    /// Prepares files in an unprotected temporary staging folder to avoid TCC sandboxing issues (e.g. ~/Downloads)
+    public func withStagedFiles<T>(
+        _ sources: [URL],
+        operation: ([URL]) async throws -> T
+    ) async throws -> T {
+        let fileManager = FileManager.default
+        let tempFolder = fileManager.temporaryDirectory.appendingPathComponent("HarborStaging-\(UUID().uuidString)", isDirectory: true)
+
+        try fileManager.createDirectory(at: tempFolder, withIntermediateDirectories: true, attributes: [.posixPermissions: 0o700])
+        defer {
+            try? fileManager.removeItem(at: tempFolder)
+        }
+
+        var stagedURLs: [URL] = []
+        for source in sources {
+            let dest = tempFolder.appendingPathComponent(source.lastPathComponent)
+            try fileManager.copyItem(at: source.resolvingSymlinksInPath(), to: dest)
+            // Remove any macOS immutable flags on the copy
+            try? fileManager.setAttributes([.immutable: false], ofItemAtPath: dest.path)
+            stagedURLs.append(dest)
+        }
+
+        return try await operation(stagedURLs)
+    }
+
+    /// Formats simctl output to concise, actionable errors
+    public static func conciseMessage(_ output: String) -> String {
+        let trimmed = output.trimmingCharacters(in: .whitespacesAndNewlines)
+        if trimmed.contains("Source is not authorized") {
+            return "The app is not allowed to show notifications. Open it in simulator and allow permissions."
+        }
+        if trimmed.contains("PHPhotosErrorDomain") || trimmed.contains("code=3302") {
+            return "Photos could not import this media file. Ensure it is a valid supported photo or video."
+        }
+        if let reasonRange = trimmed.range(of: "reason: '"),
+           let end = trimmed[reasonRange.upperBound...].firstIndex(of: "'") {
+            return "simctl error: \(trimmed[reasonRange.upperBound..<end])"
+        }
+        let lines = trimmed.split(whereSeparator: \.isNewline)
+        if let detail = lines.last(where: { $0.hasPrefix("\t") }) {
+            return detail.trimmingCharacters(in: .whitespaces)
+        }
+        return lines.prefix(2).joined(separator: ": ")
     }
 
     /// Boots the simulator device if not already running, waiting until booted
@@ -75,7 +120,7 @@ public final class SimulatorService {
             if result.exitCode == 0 {
                 return .success("Installed \(fileURL.lastPathComponent)")
             } else {
-                let err = result.error.trimmingCharacters(in: .whitespacesAndNewlines)
+                let err = Self.conciseMessage(result.error)
                 return .failure(err.isEmpty ? "Failed to install app (code \(result.exitCode))" : err)
             }
         } catch {
@@ -91,17 +136,20 @@ public final class SimulatorService {
 
         do {
             try await bootIfNeeded(deviceUDID: device)
-            var arguments = ["simctl", "addmedia", device]
-            arguments.append(contentsOf: fileURLs.map { $0.path })
 
-            let result = try await runXcrun(arguments: arguments)
-            if result.exitCode == 0 {
-                let count = fileURLs.count
-                let label = count == 1 ? "1 item" : "\(count) items"
-                return .success("Imported \(label) into Photos")
-            } else {
-                let err = result.error.trimmingCharacters(in: .whitespacesAndNewlines)
-                return .failure(err.isEmpty ? "Failed to add media (code \(result.exitCode))" : err)
+            return try await withStagedFiles(fileURLs) { staged in
+                var arguments = ["simctl", "addmedia", device]
+                arguments.append(contentsOf: staged.map { $0.path })
+
+                let result = try await runXcrun(arguments: arguments)
+                if result.exitCode == 0 {
+                    let count = fileURLs.count
+                    let label = count == 1 ? "1 item" : "\(count) items"
+                    return .success("Imported \(label) into Photos")
+                } else {
+                    let err = Self.conciseMessage(result.error)
+                    return .failure(err.isEmpty ? "Failed to add media (code \(result.exitCode))" : err)
+                }
             }
         } catch {
             return .failure(error.localizedDescription)
@@ -115,11 +163,12 @@ public final class SimulatorService {
         }
 
         do {
+            try await bootIfNeeded(deviceUDID: device)
             let result = try await runXcrun(arguments: ["simctl", "pbcopy", device], inputData: data)
             if result.exitCode == 0 {
                 return .success("Copied to Simulator pasteboard")
             } else {
-                let err = result.error.trimmingCharacters(in: .whitespacesAndNewlines)
+                let err = Self.conciseMessage(result.error)
                 return .failure(err.isEmpty ? "Failed to push clipboard" : err)
             }
         } catch {
@@ -130,6 +179,7 @@ public final class SimulatorService {
     /// Pull text from simulator pasteboard to Mac via `simctl pbpaste`
     public func pullClipboard(device: String = "booted") async -> (text: String?, result: TransferResult) {
         do {
+            try await bootIfNeeded(deviceUDID: device)
             let result = try await runXcrun(arguments: ["simctl", "pbpaste", device])
             if result.exitCode == 0 {
                 return (result.output, .success("Pulled clipboard from Simulator"))
@@ -157,6 +207,12 @@ public final class SimulatorService {
 
     /// Copy files into an installed app's Documents folder
     public func copyFilesToApp(device: String = "booted", bundleId: String, fileURLs: [URL]) async -> TransferResult {
+        do {
+            try await bootIfNeeded(deviceUDID: device)
+        } catch {
+            return .failure("Could not boot device: \(error.localizedDescription)")
+        }
+
         guard let container = await getAppContainer(device: device, bundleId: bundleId) else {
             return .failure("Could not locate container for \(bundleId)")
         }
