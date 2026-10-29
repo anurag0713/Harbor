@@ -33,10 +33,6 @@
 - **Global Hotkey**: Press `Option + Shift + V` (`⌥⇧V`) anywhere on your Mac to sync your clipboard into the simulator without opening any menus.
 - **Simulator → Mac**: Pulls text from the simulator's pasteboard back to macOS with one click.
 
-### 4. ⌨️ Simulator Keyboard & Shift Fix
-- One-click reset to flush stuck modifier keys (`Shift`, `Option`, `Command`) caused by Xcode Device Hub's multi-simulator window focus desync.
-- Re-syncs the virtual HID keyboard stream and re-asserts window focus.
-
 ---
 
 ## Installation & First Launch 🚀

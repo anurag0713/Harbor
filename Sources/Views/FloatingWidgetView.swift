@@ -190,18 +190,6 @@ public struct FloatingWidgetView: View {
 
             Spacer()
 
-            Button(action: {
-                Task {
-                    _ = await SimulatorService.shared.resetKeyboardFocus(deviceUDID: discovery.targetDeviceIdentifier)
-                }
-            }) {
-                Image(systemName: "keyboard")
-                    .font(.system(size: 10))
-                    .foregroundColor(.secondary)
-            }
-            .buttonStyle(.plain)
-            .help("Fix stuck Shift/modifier keys on simulator")
-
             Button(action: { discovery.refresh() }) {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 10))

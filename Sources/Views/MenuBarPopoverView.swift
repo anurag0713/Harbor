@@ -121,11 +121,6 @@ public struct MenuBarPopoverView: View {
 
             Divider()
 
-            // Feature 3: Simulator Keyboard Fix
-            KeyboardResetView()
-
-            Divider()
-
             // Footer / Settings
             HStack {
                 Spacer()
