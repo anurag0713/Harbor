@@ -5,7 +5,9 @@ import Combine
 public final class SimulatorDiscovery: ObservableObject {
     public static let shared = SimulatorDiscovery()
 
+    @Published public private(set) var allDevices: [SimulatorDevice] = []
     @Published public private(set) var bootedDevices: [SimulatorDevice] = []
+    @Published public private(set) var shutdownGroups: [SimulatorRuntimeGroup] = []
     @Published public var selectedDevice: SimulatorDevice?
     @Published public private(set) var isScanning: Bool = false
     @Published public private(set) var lastErrorMessage: String?
@@ -14,7 +16,7 @@ public final class SimulatorDiscovery: ObservableObject {
 
     public init() {
         refresh()
-        // Periodically refresh list of booted devices
+        // Periodically refresh list of available devices
         timer = Timer.scheduledTimer(withTimeInterval: 5.0, repeats: true) { [weak self] _ in
             Task { @MainActor [weak self] in
                 self?.refresh()
@@ -30,29 +32,62 @@ public final class SimulatorDiscovery: ObservableObject {
         isScanning = true
         Task {
             do {
-                let (output, _, exitCode) = try await SimulatorService.shared.runXcrun(arguments: ["simctl", "list", "devices", "booted", "-j"])
+                let (output, _, exitCode) = try await SimulatorService.shared.runXcrun(arguments: ["simctl", "list", "devices", "available", "-j"])
                 if exitCode == 0, let data = output.data(using: .utf8) {
                     let decoded = try JSONDecoder().decode(SimctlDeviceListResponse.self, from: data)
-                    var found: [SimulatorDevice] = []
+
+                    var all: [SimulatorDevice] = []
+                    var booted: [SimulatorDevice] = []
+                    var groupedByRuntime: [String: [SimulatorDevice]] = [:]
+
+                    // Only support iOS simulators (matching SimParcel)
                     for (runtimeKey, devices) in decoded.devices {
-                        let cleanRuntime = runtimeKey
-                            .replacingOccurrences(of: "com.apple.CoreSimulator.SimRuntime.", with: "")
-                            .replacingOccurrences(of: "-", with: " ")
-                        for var device in devices where device.isBooted {
+                        let prefix = "com.apple.CoreSimulator.SimRuntime."
+                        guard runtimeKey.hasPrefix(prefix) else { continue }
+                        let rawSuffix = String(runtimeKey.dropFirst(prefix.count))
+                        // Must be iOS
+                        guard rawSuffix.hasPrefix("iOS") else { continue }
+
+                        let cleanRuntime = rawSuffix.replacingOccurrences(of: "-", with: " ")
+                            .replacingOccurrences(of: "iOS ", with: "iOS ")
+
+                        var runtimeDevices: [SimulatorDevice] = []
+                        for var device in devices {
                             device.runtime = cleanRuntime
                             device.rawRuntime = runtimeKey
-                            found.append(device)
+                            all.append(device)
+                            if device.isBooted {
+                                booted.append(device)
+                            } else {
+                                runtimeDevices.append(device)
+                            }
+                        }
+
+                        if !runtimeDevices.isEmpty {
+                            groupedByRuntime[cleanRuntime] = runtimeDevices.sorted { $0.name.localizedStandardCompare($1.name) == .orderedAscending }
                         }
                     }
-                    self.bootedDevices = found
-                    if let current = self.selectedDevice, found.contains(where: { $0.udid == current.udid }) {
-                        // Keep current selection
+
+                    // Sort runtime groups descending (newest iOS first)
+                    let sortedGroups = groupedByRuntime.map { SimulatorRuntimeGroup(runtime: $0.key, devices: $0.value) }
+                        .sorted { $0.runtime > $1.runtime }
+
+                    self.allDevices = all
+                    self.bootedDevices = booted
+                    self.shutdownGroups = sortedGroups
+
+                    // Preserve or pick selection
+                    if let current = self.selectedDevice, let updated = all.first(where: { $0.udid == current.udid }) {
+                        self.selectedDevice = updated
                     } else {
-                        self.selectedDevice = found.first
+                        // Prefer first booted, else first available
+                        self.selectedDevice = booted.first ?? all.first
                     }
                     self.lastErrorMessage = nil
                 } else {
+                    self.allDevices = []
                     self.bootedDevices = []
+                    self.shutdownGroups = []
                     self.selectedDevice = nil
                 }
             } catch {
@@ -62,9 +97,9 @@ public final class SimulatorDiscovery: ObservableObject {
         }
     }
 
-    /// Formats the display name. If multiple booted devices share the same name, appends short version (e.g. "iPhone 17 (v26)").
+    /// Formats the display name. If multiple devices share the same name, appends short version (e.g. "iPhone 16 (v18.2)").
     public func displayName(for device: SimulatorDevice) -> String {
-        let duplicates = bootedDevices.filter { $0.name == device.name }
+        let duplicates = allDevices.filter { $0.name == device.name }
         if duplicates.count > 1, let ver = device.shortVersion, !ver.isEmpty {
             return "\(device.name) (\(ver))"
         }
@@ -72,8 +107,9 @@ public final class SimulatorDiscovery: ObservableObject {
     }
 
     public var selectedDeviceDisplayName: String {
-        guard let dev = selectedDevice else { return "No Sim Booted" }
-        return displayName(for: dev)
+        guard let dev = selectedDevice else { return "No Simulators Found" }
+        let status = dev.isBooted ? "" : " (Offline)"
+        return "\(displayName(for: dev))\(status)"
     }
 
     public var targetDeviceIdentifier: String {

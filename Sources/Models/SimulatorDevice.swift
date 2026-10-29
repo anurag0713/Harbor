@@ -1,17 +1,25 @@
 import Foundation
 
-public struct SimulatorDevice: Identifiable, Codable, Hashable {
+public struct SimulatorDevice: Identifiable, Codable, Hashable, Sendable {
     public let udid: String
     public let name: String
     public let state: String
     public let isAvailable: Bool?
     public var runtime: String?
     public var rawRuntime: String?
+    public var dataPath: String?
 
     public var id: String { udid }
 
     public var isBooted: Bool {
         return state.lowercased() == "booted"
+    }
+
+    public var label: String {
+        if let runtime = runtime, !runtime.isEmpty {
+            return "\(name) · \(runtime)"
+        }
+        return name
     }
 
     public var shortVersion: String? {
@@ -34,7 +42,8 @@ public struct SimulatorDevice: Identifiable, Codable, Hashable {
         state: String,
         isAvailable: Bool? = true,
         runtime: String? = nil,
-        rawRuntime: String? = nil
+        rawRuntime: String? = nil,
+        dataPath: String? = nil
     ) {
         self.udid = udid
         self.name = name
@@ -42,6 +51,19 @@ public struct SimulatorDevice: Identifiable, Codable, Hashable {
         self.isAvailable = isAvailable
         self.runtime = runtime
         self.rawRuntime = rawRuntime
+        self.dataPath = dataPath
+    }
+}
+
+public struct SimulatorRuntimeGroup: Identifiable, Hashable, Sendable {
+    public let runtime: String
+    public let devices: [SimulatorDevice]
+
+    public var id: String { runtime }
+
+    public init(runtime: String, devices: [SimulatorDevice]) {
+        self.runtime = runtime
+        self.devices = devices
     }
 }
 

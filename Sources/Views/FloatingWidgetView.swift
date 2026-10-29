@@ -148,13 +148,28 @@ public struct FloatingWidgetView: View {
     private var simulatorTargetStrip: some View {
         HStack(spacing: 6) {
             Circle()
-                .fill(discovery.bootedDevices.isEmpty ? Color.orange : Color.green)
+                .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
                 .frame(width: 7, height: 7)
 
-            Text(discovery.selectedDeviceDisplayName)
-                .font(.system(size: 11, weight: .medium))
-                .foregroundColor(.primary)
-                .lineLimit(1)
+            Picker("", selection: $discovery.selectedDevice) {
+                if !discovery.bootedDevices.isEmpty {
+                    Section("Running") {
+                        ForEach(discovery.bootedDevices) { dev in
+                            Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                        }
+                    }
+                }
+
+                ForEach(discovery.shutdownGroups) { group in
+                    Section(group.runtime) {
+                        ForEach(group.devices) { dev in
+                            Text(dev.name).tag(Optional(dev))
+                        }
+                    }
+                }
+            }
+            .labelsHidden()
+            .controlSize(.small)
 
             Spacer()
 

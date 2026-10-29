@@ -21,33 +21,42 @@ public struct MenuBarPopoverView: View {
                 Spacer()
 
                 // Simulator picker / status
-                if discovery.bootedDevices.isEmpty {
+                if discovery.allDevices.isEmpty {
                     HStack(spacing: 5) {
                         Circle()
                             .fill(Color.orange)
                             .frame(width: 7, height: 7)
-                        Text("No Sim Booted")
+                        Text(discovery.isScanning ? "Scanning..." : "No Simulators")
                             .font(.system(size: 11))
                             .foregroundColor(.secondary)
                     }
-                } else if discovery.bootedDevices.count == 1, let dev = discovery.bootedDevices.first {
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(Color.green)
-                            .frame(width: 7, height: 7)
-                        Text(discovery.displayName(for: dev))
-                            .font(.system(size: 11, weight: .medium))
-                            .lineLimit(1)
-                    }
                 } else {
-                    Picker("", selection: $discovery.selectedDevice) {
-                        ForEach(discovery.bootedDevices) { dev in
-                            Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                    HStack(spacing: 4) {
+                        Circle()
+                            .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
+                            .frame(width: 7, height: 7)
+
+                        Picker("", selection: $discovery.selectedDevice) {
+                            if !discovery.bootedDevices.isEmpty {
+                                Section("Running") {
+                                    ForEach(discovery.bootedDevices) { dev in
+                                        Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                                    }
+                                }
+                            }
+
+                            ForEach(discovery.shutdownGroups) { group in
+                                Section(group.runtime) {
+                                    ForEach(group.devices) { dev in
+                                        Text(dev.name).tag(Optional(dev))
+                                    }
+                                }
+                            }
                         }
+                        .labelsHidden()
+                        .controlSize(.mini)
+                        .frame(maxWidth: 165)
                     }
-                    .labelsHidden()
-                    .controlSize(.mini)
-                    .frame(maxWidth: 160)
                 }
 
                 Button(action: { discovery.refresh() }) {

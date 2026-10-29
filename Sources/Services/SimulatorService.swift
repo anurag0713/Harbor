@@ -52,9 +52,25 @@ public final class SimulatorService {
         }
     }
 
+    /// Boots the simulator device if not already running, waiting until booted
+    public func bootIfNeeded(deviceUDID: String) async throws {
+        guard deviceUDID != "booted", !deviceUDID.isEmpty else { return }
+        _ = try await runXcrun(arguments: ["simctl", "bootstatus", deviceUDID, "-b"])
+    }
+
+    /// Boots and reveals the simulator in Simulator.app
+    public func showSimulator(deviceUDID: String) async throws {
+        try await bootIfNeeded(deviceUDID: deviceUDID)
+        let openProcess = Process()
+        openProcess.executableURL = URL(fileURLWithPath: "/usr/bin/open")
+        openProcess.arguments = ["-a", "Simulator", "--args", "-CurrentDeviceUDID", deviceUDID]
+        try openProcess.run()
+    }
+
     /// Install an .app bundle onto the simulator via `simctl install`
     public func installApp(device: String = "booted", fileURL: URL) async -> TransferResult {
         do {
+            try await bootIfNeeded(deviceUDID: device)
             let result = try await runXcrun(arguments: ["simctl", "install", device, fileURL.path])
             if result.exitCode == 0 {
                 return .success("Installed \(fileURL.lastPathComponent)")
@@ -73,10 +89,11 @@ public final class SimulatorService {
             return .failure("No files provided")
         }
 
-        var arguments = ["simctl", "addmedia", device]
-        arguments.append(contentsOf: fileURLs.map { $0.path })
-
         do {
+            try await bootIfNeeded(deviceUDID: device)
+            var arguments = ["simctl", "addmedia", device]
+            arguments.append(contentsOf: fileURLs.map { $0.path })
+
             let result = try await runXcrun(arguments: arguments)
             if result.exitCode == 0 {
                 let count = fileURLs.count
