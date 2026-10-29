@@ -102,14 +102,10 @@ public final class FileRouter {
                     messages.append(result.message)
                     if !result.isSuccess { allSucceeded = false }
                 } else {
-                    // Try to add as media anyway (some simulators accept files in Photos/Files)
-                    let result = await SimulatorService.shared.addMedia(device: targetDevice, fileURLs: docURLs)
-                    if result.isSuccess {
-                        messages.append("Imported \(docURLs.count) file(s)")
-                    } else {
-                        messages.append("Non-media files require an active app bundle ID to target Documents")
-                        allSucceeded = false
-                    }
+                    // Import directly into Simulator's Files app ("On My iPhone")
+                    let result = await SimulatorService.shared.copyFilesToFilesApp(device: targetDevice, fileURLs: docURLs)
+                    messages.append(result.message)
+                    if !result.isSuccess { allSucceeded = false }
                 }
             }
         }

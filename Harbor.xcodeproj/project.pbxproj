@@ -20,6 +20,7 @@
 		94D5B38CF250E28F76BFEC70 /* FloatingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */; };
 		9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */; };
 		A17936B543EA4EC5953DDC46 /* QueueItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EA198E7D66E088343D0B7BF /* QueueItemRow.swift */; };
+		C82CB9877DEE09CE00624928 /* FilesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DEA0475402753CA1E1900E6 /* FilesStorage.swift */; };
 		E3D7C2D7C8F48B343E199B3E /* QueueItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD8EB95BDDEABFDEA53F7EE /* QueueItem.swift */; };
 		EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */; };
 		F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B75D66C059730E173C5425 /* FileRouter.swift */; };
@@ -37,6 +38,7 @@
 		7DD8EB95BDDEABFDEA53F7EE /* QueueItem.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueItem.swift; sourceTree = "<group>"; };
 		88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingWidgetView.swift; sourceTree = "<group>"; };
 		8BF8872DD1A7B816077B7F6F /* WindowDragHandle.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WindowDragHandle.swift; sourceTree = "<group>"; };
+		8DEA0475402753CA1E1900E6 /* FilesStorage.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FilesStorage.swift; sourceTree = "<group>"; };
 		97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDevice.swift; sourceTree = "<group>"; };
 		A4D04111DCF5122FC498FAFF /* HarborApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarborApp.swift; sourceTree = "<group>"; };
 		B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferResult.swift; sourceTree = "<group>"; };
@@ -104,6 +106,7 @@
 			children = (
 				3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */,
 				53B75D66C059730E173C5425 /* FileRouter.swift */,
+				8DEA0475402753CA1E1900E6 /* FilesStorage.swift */,
 				D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */,
 				4DB09FDCF294D15F4CF623DB /* QueueManager.swift */,
 				E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */,
@@ -192,6 +195,7 @@
 				EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */,
 				7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */,
 				F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */,
+				C82CB9877DEE09CE00624928 /* FilesStorage.swift in Sources */,
 				745486DBE06BB71381C18415 /* FloatingWidgetPanel.swift in Sources */,
 				94D5B38CF250E28F76BFEC70 /* FloatingWidgetView.swift in Sources */,
 				46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */,

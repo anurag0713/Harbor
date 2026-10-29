@@ -205,6 +205,59 @@ public final class SimulatorService {
         return nil
     }
 
+    /// Resolve the simulator's Files app ("On My iPhone") storage folder
+    public func filesFolder(on deviceUDID: String) async throws -> URL {
+        try await bootIfNeeded(deviceUDID: deviceUDID)
+
+        // Try lookup via simctl get_app_container groups
+        let res = try? await runXcrun(arguments: ["simctl", "get_app_container", deviceUDID, "com.apple.DocumentsApp", "groups"])
+        var groupURL: URL? = nil
+        if let output = res?.output, res?.exitCode == 0 {
+            if let path = FilesStorage.groupPath(inGroupsOutput: output) {
+                groupURL = URL(fileURLWithPath: path)
+            }
+        }
+
+        // Fallback: look in SimulatorDiscovery device dataPath
+        if groupURL == nil {
+            let allDevices = await SimulatorDiscovery.shared.allDevices
+            if let device = allDevices.first(where: { $0.udid == deviceUDID }),
+               let dataPath = device.dataPath {
+                groupURL = FilesStorage.findGroup(inDataPath: dataPath)
+            }
+        }
+
+        // Secondary fallback: standard Simulator path ~/Library/Developer/CoreSimulator/Devices/<UDID>/data
+        if groupURL == nil {
+            let home = FileManager.default.homeDirectoryForCurrentUser
+            let standardDataPath = home.appendingPathComponent("Library/Developer/CoreSimulator/Devices/\(deviceUDID)/data").path
+            groupURL = FilesStorage.findGroup(inDataPath: standardDataPath)
+        }
+
+        guard let group = groupURL else {
+            throw NSError(domain: "Harbor", code: 404, userInfo: [NSLocalizedDescriptionKey: "Files app storage not found on device"])
+        }
+
+        return group.appendingPathComponent(FilesStorage.folderName)
+    }
+
+    /// Import files into the simulator's Files app ("On My iPhone")
+    public func copyFilesToFilesApp(device: String = "booted", fileURLs: [URL]) async -> TransferResult {
+        guard !fileURLs.isEmpty else { return .failure("No files provided") }
+        do {
+            let targetFolder = try await filesFolder(on: device)
+            var count = 0
+            for fileURL in fileURLs {
+                try FilesStorage.copy(fileURL, into: targetFolder)
+                count += 1
+            }
+            let label = count == 1 ? "1 file" : "\(count) files"
+            return .success("Imported \(label) into Files app")
+        } catch {
+            return .failure("Files import error: \(error.localizedDescription)")
+        }
+    }
+
     /// Copy files into an installed app's Documents folder
     public func copyFilesToApp(device: String = "booted", bundleId: String, fileURLs: [URL]) async -> TransferResult {
         do {
