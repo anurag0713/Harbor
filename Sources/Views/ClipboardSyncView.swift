@@ -50,7 +50,7 @@ public struct ClipboardSyncView: View {
                     .font(.system(size: 12, weight: .medium))
                     .frame(maxWidth: .infinity)
                 }
-                .buttonStyle(.borderedProminent)
+                .buttonStyle(.bordered)
                 .controlSize(.regular)
 
                 Button(action: pullClipboard) {
@@ -64,6 +64,11 @@ public struct ClipboardSyncView: View {
                 .buttonStyle(.bordered)
                 .controlSize(.regular)
             }
+
+            Text("Copies and syncs clipboard text between your Mac and the simulator.")
+                .font(.system(size: 10))
+                .foregroundColor(.secondary)
+                .fixedSize(horizontal: false, vertical: true)
 
             if let feedback = feedbackText {
                 HStack(spacing: 4) {
