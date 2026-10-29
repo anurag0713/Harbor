@@ -2,7 +2,7 @@ import SwiftUI
 
 public struct MenuBarPopoverView: View {
     @ObservedObject var discovery = SimulatorDiscovery.shared
-    @State private var isFloatingWidgetVisible: Bool = false
+    @ObservedObject var widgetController = FloatingWidgetController.shared
 
     public init() {}
 
@@ -61,8 +61,47 @@ public struct MenuBarPopoverView: View {
 
             Divider()
 
-            // Feature 1: Drag & Drop Zone
-            DropZoneView(discovery: discovery)
+            // Open Drop Window Button
+            Button(action: {
+                widgetController.toggle()
+            }) {
+                HStack(spacing: 8) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.accentColor.opacity(0.15))
+                            .frame(width: 28, height: 28)
+                        Image(systemName: widgetController.isVisible ? "pip.exit" : "pip.enter")
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundColor(.accentColor)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text(widgetController.isVisible ? "Close Floating Drop Window" : "Open Floating Drop Window")
+                            .font(.system(size: 12, weight: .semibold))
+                            .foregroundColor(.primary)
+                        Text("Always-on-top draggable window for file imports")
+                            .font(.system(size: 10))
+                            .foregroundColor(.secondary)
+                    }
+
+                    Spacer()
+
+                    Image(systemName: widgetController.isVisible ? "checkmark.circle.fill" : "chevron.right")
+                        .font(.system(size: 11, weight: .semibold))
+                        .foregroundColor(widgetController.isVisible ? .green : .secondary)
+                }
+                .padding(.horizontal, 10)
+                .padding(.vertical, 8)
+                .background(
+                    RoundedRectangle(cornerRadius: 10)
+                        .fill(Color.primary.opacity(0.04))
+                )
+                .overlay(
+                    RoundedRectangle(cornerRadius: 10)
+                        .stroke(widgetController.isVisible ? Color.accentColor.opacity(0.4) : Color.primary.opacity(0.08), lineWidth: 1)
+                )
+            }
+            .buttonStyle(.plain)
 
             Divider()
 
@@ -78,16 +117,6 @@ public struct MenuBarPopoverView: View {
 
             // Footer / Settings
             HStack {
-                Toggle("Floating Drop Pill", isOn: $isFloatingWidgetVisible)
-                    .font(.system(size: 11))
-                    .onChange(of: isFloatingWidgetVisible) { visible in
-                        if visible {
-                            FloatingWidgetPanel.shared.makeKeyAndOrderFront(nil)
-                        } else {
-                            FloatingWidgetPanel.shared.orderOut(nil)
-                        }
-                    }
-
                 Spacer()
 
                 Button("Quit") {

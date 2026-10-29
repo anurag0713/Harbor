@@ -1,6 +1,35 @@
 import AppKit
 import SwiftUI
 
+@MainActor
+public final class FloatingWidgetController: ObservableObject {
+    public static let shared = FloatingWidgetController()
+
+    @Published public var isVisible: Bool = false
+
+    private init() {
+        isVisible = FloatingWidgetPanel.shared.isVisible
+    }
+
+    public func show() {
+        FloatingWidgetPanel.shared.makeKeyAndOrderFront(nil)
+        isVisible = true
+    }
+
+    public func hide() {
+        FloatingWidgetPanel.shared.orderOut(nil)
+        isVisible = false
+    }
+
+    public func toggle() {
+        if FloatingWidgetPanel.shared.isVisible {
+            hide()
+        } else {
+            show()
+        }
+    }
+}
+
 public final class FloatingWidgetPanel: NSPanel {
     public static let shared = FloatingWidgetPanel()
 
@@ -43,8 +72,10 @@ public final class FloatingWidgetPanel: NSPanel {
     public func toggleVisibility() {
         if isVisible {
             orderOut(nil)
+            FloatingWidgetController.shared.isVisible = false
         } else {
             makeKeyAndOrderFront(nil)
+            FloatingWidgetController.shared.isVisible = true
         }
     }
 }

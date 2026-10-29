@@ -18,7 +18,6 @@
 		7B92A524D12457D8FE902F71 /* ShortcutFixView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 182FE35AE6732A8CE97D48A8 /* ShortcutFixView.swift */; };
 		94D5B38CF250E28F76BFEC70 /* FloatingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */; };
 		9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */; };
-		A15A85436434081498647C78 /* DropZoneView.swift in Sources */ = {isa = PBXBuildFile; fileRef = B94CE74F9B38A6146ACA436B /* DropZoneView.swift */; };
 		A5080F78A418010436A8208F /* DefaultsService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 28062A429ED29B48AE23314C /* DefaultsService.swift */; };
 		EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */; };
 		F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B75D66C059730E173C5425 /* FileRouter.swift */; };
@@ -37,7 +36,6 @@
 		97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDevice.swift; sourceTree = "<group>"; };
 		A4D04111DCF5122FC498FAFF /* HarborApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarborApp.swift; sourceTree = "<group>"; };
 		B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferResult.swift; sourceTree = "<group>"; };
-		B94CE74F9B38A6146ACA436B /* DropZoneView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DropZoneView.swift; sourceTree = "<group>"; };
 		D3168FB726624EBE33FF163B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
 		E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSyncView.swift; sourceTree = "<group>"; };
@@ -72,7 +70,6 @@
 			isa = PBXGroup;
 			children = (
 				E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */,
-				B94CE74F9B38A6146ACA436B /* DropZoneView.swift */,
 				3B917B290BF30B18F7775114 /* FloatingWidgetPanel.swift */,
 				88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */,
 				499D3C9FC6585CB428B111B2 /* MenuBarPopoverView.swift */,
@@ -189,7 +186,6 @@
 				EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */,
 				7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */,
 				A5080F78A418010436A8208F /* DefaultsService.swift in Sources */,
-				A15A85436434081498647C78 /* DropZoneView.swift in Sources */,
 				F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */,
 				745486DBE06BB71381C18415 /* FloatingWidgetPanel.swift in Sources */,
 				94D5B38CF250E28F76BFEC70 /* FloatingWidgetView.swift in Sources */,

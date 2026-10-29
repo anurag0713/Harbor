@@ -40,7 +40,7 @@ public struct FloatingWidgetView: View {
             Spacer(minLength: 0)
 
             Button(action: {
-                FloatingWidgetPanel.shared.orderOut(nil)
+                FloatingWidgetController.shared.hide()
             }) {
                 Image(systemName: "xmark.circle.fill")
                     .foregroundColor(.secondary.opacity(0.6))
