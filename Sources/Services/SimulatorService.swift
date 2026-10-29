@@ -54,34 +54,74 @@ public final class SimulatorService {
 
     /// Fixes stuck Shift / modifier keys when switching between multiple simulators in Device Hub
     public func resetKeyboardFocus(deviceUDID: String? = nil) async -> TransferResult {
-        // 1. Cycle hardware keyboard connection (⌘⇧K twice) via AppleScript if Simulator is active
-        let script = """
-        tell application "System Events"
-            if exists (process "Simulator") then
-                tell process "Simulator"
-                    set frontmost to true
-                    keystroke "k" using {command down, shift down}
-                    delay 0.1
-                    keystroke "k" using {command down, shift down}
-                end tell
-            end if
-        end tell
-        """
-
-        var errorInfo: NSDictionary?
-        if let appleScript = NSAppleScript(source: script) {
-            appleScript.executeAndReturnError(&errorInfo)
+        let udid: String
+        if let given = deviceUDID, !given.isEmpty, given != "booted" {
+            udid = given
+        } else {
+            udid = await SimulatorDiscovery.shared.targetDeviceIdentifier
         }
 
-        // 2. Re-assert key window focus for the selected device
-        if let udid = deviceUDID, udid != "booted", !udid.isEmpty {
-            let process = Process()
-            process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-            process.arguments = ["-a", "Simulator", "--args", "-CurrentDeviceUDID", udid]
-            try? process.run()
+        guard !udid.isEmpty, udid != "booted" else {
+            return .failure("No simulator selected to reset keyboard")
         }
 
-        return .success("Keyboard & Shift state reset")
+        do {
+            // 1. Read locale/language from target simulator
+            let localeRes = try? await runXcrun(arguments: ["simctl", "spawn", udid, "defaults", "read", "-g", "AppleLocale"])
+            let rawLocale = localeRes?.output.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+            let locale = rawLocale.isEmpty ? "en_US" : rawLocale
+
+            // 2. Configure AppleKeyboards with hardware mapping (hw=Automatic)
+            let primaryKeyboard = "\(locale)@sw=QWERTY;hw=Automatic;ml=100"
+            _ = try await runXcrun(arguments: [
+                "simctl", "spawn", udid, "defaults", "write", "-g", "AppleKeyboards",
+                "-array", primaryKeyboard, "emoji@sw=Emoji"
+            ])
+
+            // 3. Mark ConnectHardwareKeyboard = 1 in com.apple.iphonesimulator preferences
+            let dictSnippet = "{ ConnectHardwareKeyboard = 1; }"
+            let proc = Process()
+            proc.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+            proc.arguments = ["write", "com.apple.iphonesimulator", "DevicePreferences", "-dict-add", udid, dictSnippet]
+            try? proc.run()
+            proc.waitUntilExit()
+
+            // Global flags
+            let proc2 = Process()
+            proc2.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+            proc2.arguments = ["write", "com.apple.iphonesimulator", "ConnectHardwareKeyboard", "-bool", "true"]
+            try? proc2.run()
+            proc2.waitUntilExit()
+
+            let proc3 = Process()
+            proc3.executableURL = URL(fileURLWithPath: "/usr/bin/defaults")
+            proc3.arguments = ["write", "com.apple.dt.Devices", "AlwaysSimulateHardwareKeyboard", "-bool", "true"]
+            try? proc3.run()
+            proc3.waitUntilExit()
+
+            // 4. Notify simulator keyboard subsystem of preferences change
+            _ = try? await runXcrun(arguments: ["simctl", "spawn", udid, "notifyutil", "-p", "com.apple.keyboard.preferences.changed"])
+
+            // 5. Restart TextInput.kbd daemon inside simulator
+            _ = try? await runXcrun(arguments: ["simctl", "spawn", udid, "/bin/sh", "-c", "launchctl kill 9 gui/$(id -u)/com.apple.TextInput.kbd 2>/dev/null || true"])
+
+            // 6. Activate DeviceHub / Simulator host window
+            let activateScript = """
+            tell application "System Events"
+                if exists (process "DeviceHub") then
+                    tell process "DeviceHub" to set frontmost to true
+                else if exists (process "Simulator") then
+                    tell process "Simulator" to set frontmost to true
+                end if
+            end tell
+            """
+            var err: NSDictionary?
+            NSAppleScript(source: activateScript)?.executeAndReturnError(&err)
+
+            return .success("Hardware keyboard & Shift re-enabled")
+        } catch {
+            return .failure("Keyboard reset failed: \(error.localizedDescription)")
+        }
     }
 
     /// Prepares files in an unprotected temporary staging folder to avoid TCC sandboxing issues (e.g. ~/Downloads)
