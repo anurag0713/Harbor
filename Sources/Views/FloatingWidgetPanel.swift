@@ -14,7 +14,8 @@ public final class FloatingWidgetController: ObservableObject {
     }
 
     private init() {
-        isVisible = FloatingWidgetPanel.shared.isVisible
+        // Break circular dependency during static initialization
+        self.isVisible = false
     }
 
     public func show() {
@@ -40,6 +41,7 @@ public final class FloatingWidgetController: ObservableObject {
     }
 }
 
+@MainActor
 public final class FloatingWidgetPanel: NSPanel {
     public static let shared = FloatingWidgetPanel()
 
