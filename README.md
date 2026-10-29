@@ -9,29 +9,28 @@
 [![Swift](https://img.shields.io/badge/Swift-5.9%2B-orange.svg)](https://swift.org)
 
 > A lightweight macOS Menu Bar companion for Xcode Device Hub.
-> Bridges the gap between macOS and simulator runtimes with instant drag-and-drop file imports, bidirectional clipboard synchronization, and host keyboard shortcut restoration.
+> Bridges the gap between macOS and simulator runtimes with instant drag-and-drop file imports, batch queueing, and bidirectional clipboard synchronization.
 
 ---
 
 ## Features
 
-### 1. 📦 Drag & Drop File Routing
-- **Media (Images & Videos)**: Drag `.jpg`, `.png`, `.heic`, `.mp4`, `.mov`, etc. onto Harbor (or the floating widget) and it instantly imports them directly into the booted simulator's Photos library via `xcrun simctl addmedia`.
+### 1. 📦 Multi-File Drag & Drop Routing
+- **Media (Images & Videos)**: Drag `.jpg`, `.png`, `.heic`, `.mp4`, `.mov`, etc. onto Harbor's floating drop window to import directly into the simulator's Photos library via `xcrun simctl addmedia`.
+- **App Bundles (`.app`)**: Drag built `.app` bundles to instantly install them via `xcrun simctl install`.
 - **Push Notifications (`.apns`)**: Drop an `.apns` JSON payload; Harbor detects the `"Simulator Target Bundle"` and fires a simulated push notification.
 - **Documents & Raw Files**: Direct routing into the active app's `Documents` sandbox container.
 
-### 2. 📋 Bidirectional Clipboard Sync
+### 2. 🪟 Draggable & Collapsible Floating Drop Window
+- An always-on-top, translucent floating window that stays above Xcode and Device Hub.
+- Freely draggable anywhere on screen; remembers its position across restarts.
+- **Sticky-Notes Style Collapse**: Shrink down to a slim 44pt title strip when working, expand whenever you need full file queue management.
+- Batch multiple files together and send in a single click.
+
+### 3. 📋 Bidirectional Clipboard Sync
 - **Mac → Simulator**: Instantly sends your Mac's pasteboard into the active simulator (`xcrun simctl pbcopy`).
 - **Global Hotkey**: Press `Option + Shift + V` (`⌥⇧V`) anywhere on your Mac to sync your clipboard into the simulator without opening any menus.
 - **Simulator → Mac**: Pulls text from the simulator's pasteboard back to macOS with one click.
-
-### 3. ⌨️ Host Keyboard Shortcut Fix
-- Toggle the `hostKeybindingPolicy` fix to prevent Device Hub from swallowing `⌘H` (Hide), `⌘Tab`, and standard system window shortcuts.
-- Writes to `com.apple.dt.DeviceKit` without requiring root privileges.
-
-### 4. 🪟 Always-On-Top Floating Drop Pill
-- An optional, borderless, translucent floating widget that stays above Xcode and Device Hub.
-- Freely draggable anywhere on screen; remembers its position across restarts.
 
 ---
 

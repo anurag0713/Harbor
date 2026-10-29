@@ -110,11 +110,6 @@ public struct MenuBarPopoverView: View {
 
             Divider()
 
-            // Feature 3: Host Shortcut Fix
-            ShortcutFixView()
-
-            Divider()
-
             // Footer / Settings
             HStack {
                 Spacer()
