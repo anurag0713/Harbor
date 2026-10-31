@@ -21,16 +21,16 @@ public struct QueueItemRow: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            // ── File-type icon with kind-specific tint ────────────────────────
+            // ── File-type icon (uniform clean white) ──────────────────────────
             ZStack {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(item.kind.tintColor.opacity(0.12))
+                    .fill(Color.white.opacity(0.08))
                     .frame(width: 28, height: 28)
 
                 Image(systemName: item.kind.systemImage)
                     .renderingMode(.template)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(item.kind.tintColor)
+                    .foregroundColor(.white)
             }
 
             // ── Name & Subtitle ───────────────────────────────────────────────
@@ -152,11 +152,11 @@ public struct QueueItemRow: View {
     }
 
     private var chipContentColor: Color {
-        item.destination.isAuto ? Color.secondary : Color.accentColor
+        item.destination.isAuto ? Color.secondary : Color.white
     }
 
     private var chipBackgroundColor: Color {
-        item.destination.isAuto ? Color.primary.opacity(0.06) : Color.accentColor.opacity(0.12)
+        item.destination.isAuto ? Color.white.opacity(0.06) : Color.white.opacity(0.12)
     }
 
     // MARK: - Picker Popover
@@ -188,7 +188,6 @@ public struct QueueItemRow: View {
                         Divider().padding(.leading, 36)
                         destinationRow(
                             icon: "photo.on.rectangle.fill",
-                            iconColor: .purple,
                             label: "Photos",
                             subtitle: "Simulator photo library",
                             destination: .photos
@@ -200,7 +199,6 @@ public struct QueueItemRow: View {
                     // ── Files app ─────────────────────────────────────────
                     destinationRow(
                         icon: "folder.fill",
-                        iconColor: .blue,
                         label: "Files app",
                         subtitle: "On My iPhone",
                         destination: .filesApp
@@ -232,7 +230,6 @@ public struct QueueItemRow: View {
                         ForEach(catalog.apps) { app in
                             destinationRow(
                                 icon: "app.badge.fill",
-                                iconColor: .orange,
                                 label: app.displayName,
                                 subtitle: app.bundleId,
                                 destination: .appDocuments(bundleId: app.bundleId)
@@ -250,7 +247,6 @@ public struct QueueItemRow: View {
     @ViewBuilder
     private func destinationRow(
         icon: String?,
-        iconColor: Color = .accentColor,
         label: String,
         subtitle: String,
         destination: QueueItemDestination
@@ -267,7 +263,7 @@ public struct QueueItemRow: View {
                     Image(systemName: "checkmark")
                         .renderingMode(.template)
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.accentColor)
+                        .foregroundColor(.white)
                         .frame(width: 14)
                 } else {
                     Spacer()
@@ -279,7 +275,7 @@ public struct QueueItemRow: View {
                     Image(systemName: icon)
                         .renderingMode(.template)
                         .font(.system(size: 12))
-                        .foregroundColor(isSelected ? .accentColor : iconColor)
+                        .foregroundColor(isSelected ? .white : .secondary)
                         .frame(width: 16)
                 } else {
                     Spacer()
@@ -290,7 +286,7 @@ public struct QueueItemRow: View {
                 VStack(alignment: .leading, spacing: 1) {
                     Text(label)
                         .font(.system(size: 12, weight: isSelected ? .semibold : .regular))
-                        .foregroundColor(.primary)
+                        .foregroundColor(.white)
                         .lineLimit(1)
                     Text(subtitle)
                         .font(.system(size: 10))
@@ -305,6 +301,6 @@ public struct QueueItemRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(isSelected ? Color.accentColor.opacity(0.08) : Color.clear)
+        .background(isSelected ? Color.white.opacity(0.1) : Color.clear)
     }
 }

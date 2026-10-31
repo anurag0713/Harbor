@@ -1,6 +1,5 @@
 import Foundation
 import UniformTypeIdentifiers
-import SwiftUI
 
 public enum QueueItemKind: Sendable, Hashable {
     case app
@@ -73,18 +72,6 @@ public enum QueueItemKind: Sendable, Hashable {
         case .photo, .video, .contact, .generalDocument: return 1
         case .apnsPayload: return 2
         case .link: return 3
-        }
-    }
-
-    public var tintColor: Color {
-        switch self {
-        case .app: return .indigo
-        case .photo: return .purple
-        case .video: return .cyan
-        case .contact: return .green
-        case .apnsPayload: return .orange
-        case .link: return .teal
-        case .generalDocument: return .blue
         }
     }
 }
