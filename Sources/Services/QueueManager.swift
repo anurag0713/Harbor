@@ -13,6 +13,8 @@ public final class QueueManager: ObservableObject {
     @Published public private(set) var completedCount: Int = 0
     @Published public private(set) var totalCount: Int = 0
 
+    private var activeBatchIDs: Set<UUID> = []
+
     private init() {}
 
     public func add(urls: [URL]) {
@@ -54,7 +56,7 @@ public final class QueueManager: ObservableObject {
     }
 
     public func remove(id: UUID) {
-        guard !isSending else { return }
+        guard !activeBatchIDs.contains(id) else { return }
         items.removeAll { $0.id == id }
     }
 
@@ -75,6 +77,8 @@ public final class QueueManager: ObservableObject {
 
         // Sort items by priority order (e.g. apps first)
         let sortedItems = items.sorted { $0.kind.priorityOrder < $1.kind.priorityOrder }
+        let batchItemIDs = Set(sortedItems.map(\.id))
+        activeBatchIDs = batchItemIDs
         let urls = sortedItems.map(\.url)
 
         let result = await FileRouter.shared.routeAndTransfer(
@@ -84,13 +88,15 @@ public final class QueueManager: ObservableObject {
         )
 
         isSending = false
+        activeBatchIDs.removeAll()
         isSuccess = result.isSuccess
         completedCount = totalCount
         statusMessage = result.message
 
         if result.isSuccess {
-            items.removeAll()
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) {
+            items.removeAll { batchItemIDs.contains($0.id) }
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+                guard let self = self else { return }
                 if self.statusMessage == result.message {
                     self.statusMessage = nil
                 }
