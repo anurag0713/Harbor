@@ -21,26 +21,26 @@ public struct QueueItemRow: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            // ── File-type icon ───────────────────────────────────────────────
+            // ── File-type icon with kind-specific tint ────────────────────────
             ZStack {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.accentColor.opacity(0.12))
+                    .fill(item.kind.tintColor.opacity(0.12))
                     .frame(width: 28, height: 28)
 
                 Image(systemName: item.kind.systemImage)
+                    .renderingMode(.template)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.accentColor)
+                    .foregroundColor(item.kind.tintColor)
             }
 
-            // ── Name + meta row ──────────────────────────────────────────────
-            VStack(alignment: .leading, spacing: 3) {
+            // ── Name & Subtitle ───────────────────────────────────────────────
+            VStack(alignment: .leading, spacing: 2) {
                 Text(item.name)
                     .font(.system(size: 12, weight: .medium))
                     .lineLimit(1)
                     .truncationMode(.middle)
 
-                HStack(spacing: 5) {
-                    // Kind label
+                HStack(spacing: 4) {
                     Text(item.kind.title)
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.secondary)
@@ -53,20 +53,20 @@ public struct QueueItemRow: View {
                             .font(.system(size: 10))
                             .foregroundColor(.secondary.opacity(0.8))
                     }
-
-                    // Destination chip — only for items that support override
-                    if item.supportsDestinationOverride {
-                        Spacer(minLength: 0)
-                        destinationChip
-                    }
                 }
             }
 
-            Spacer(minLength: 0)
+            Spacer(minLength: 4)
+
+            // ── Destination Pill ─────────────────────────────────────────────
+            if item.supportsDestinationOverride {
+                destinationChip
+            }
 
             // ── Remove button ────────────────────────────────────────────────
             Button(action: onRemove) {
                 Image(systemName: "xmark.circle.fill")
+                    .renderingMode(.template)
                     .font(.system(size: 13))
                     .foregroundColor(.secondary.opacity(0.6))
             }
@@ -91,55 +91,72 @@ public struct QueueItemRow: View {
             }
             showingPicker = true
         }) {
-            HStack(spacing: 3) {
-                Image(systemName: chipIcon)
-                    .font(.system(size: 9, weight: .semibold))
+            HStack(spacing: 4) {
+                if let icon = chipIcon {
+                    Image(systemName: icon)
+                        .renderingMode(.template)
+                        .font(.system(size: 9, weight: .semibold))
+                        .foregroundColor(chipContentColor)
+                }
+
                 Text(chipLabel)
                     .font(.system(size: 10, weight: .semibold))
+                    .lineLimit(1)
+                    .foregroundColor(chipContentColor)
+
                 Image(systemName: "chevron.down")
-                    .font(.system(size: 8, weight: .bold))
+                    .renderingMode(.template)
+                    .font(.system(size: 7, weight: .bold))
+                    .foregroundColor(chipContentColor.opacity(0.8))
             }
-            .foregroundColor(item.destination.isAuto ? .secondary : .accentColor)
-            .padding(.horizontal, 5)
-            .padding(.vertical, 2)
+            .padding(.horizontal, 6)
+            .padding(.vertical, 3)
             .background(
                 Capsule()
-                    .fill(item.destination.isAuto
-                          ? Color.primary.opacity(0.07)
-                          : Color.accentColor.opacity(0.12))
+                    .fill(chipBackgroundColor)
             )
         }
         .buttonStyle(.plain)
+        .fixedSize(horizontal: true, vertical: true)
         .popover(isPresented: $showingPicker, arrowEdge: .bottom) {
             destinationPickerPopover
         }
     }
 
-    /// The SF Symbol shown on the chip.
-    private var chipIcon: String {
+    /// SF Symbol for the chip. Auto has NO icon (clean text only).
+    private var chipIcon: String? {
         switch item.destination {
         case .auto:
-            // Show what auto resolves to as the icon, greyed out
-            return QueueItemDestination.autoResolved(for: item.kind).systemImage
-        default:
-            return item.destination.systemImage
+            return nil
+        case .photos:
+            return "photo.on.rectangle.fill"
+        case .filesApp:
+            return "folder.fill"
+        case .appDocuments:
+            return "app.badge.fill"
         }
     }
 
-    /// The text shown on the chip.
+    /// Text shown inside the chip.
     private var chipLabel: String {
         switch item.destination {
         case .auto:
-            let resolved = QueueItemDestination.autoResolved(for: item.kind)
-            return "Auto · \(resolved.chipLabel)"
+            return "Auto"
         case .photos:
             return "Photos"
         case .filesApp:
             return "Files"
         case .appDocuments(let bundleId):
-            // Resolve display name from catalog
             return catalog.apps.first(where: { $0.bundleId == bundleId })?.displayName ?? bundleId
         }
+    }
+
+    private var chipContentColor: Color {
+        item.destination.isAuto ? Color.secondary : Color.accentColor
+    }
+
+    private var chipBackgroundColor: Color {
+        item.destination.isAuto ? Color.primary.opacity(0.06) : Color.accentColor.opacity(0.12)
     }
 
     // MARK: - Picker Popover
@@ -158,35 +175,41 @@ public struct QueueItemRow: View {
 
             ScrollView {
                 VStack(spacing: 0) {
-                    // ── Auto ──────────────────────────────────────────────
+                    // ── Auto (Smart routing) ──────────────────────────────
                     destinationRow(
-                        icon: "wand.and.stars",
+                        icon: nil,
                         label: "Auto",
-                        subtitle: "Smart routing by file type",
+                        subtitle: item.kind == .photo || item.kind == .video ? "Photos library" : "Files app (On My iPhone)",
                         destination: .auto
                     )
 
-                    Divider().padding(.leading, 36)
+                    // ── Photos (ONLY for media items) ─────────────────────
+                    if item.kind == .photo || item.kind == .video {
+                        Divider().padding(.leading, 36)
+                        destinationRow(
+                            icon: "photo.on.rectangle.fill",
+                            iconColor: .purple,
+                            label: "Photos",
+                            subtitle: "Simulator photo library",
+                            destination: .photos
+                        )
+                    }
 
-                    // ── Photos ────────────────────────────────────────────
-                    destinationRow(
-                        icon: "photo.on.rectangle.fill",
-                        label: "Photos",
-                        subtitle: "Simulator photo library",
-                        destination: .photos
-                    )
+                    Divider().padding(.leading, 36)
 
                     // ── Files app ─────────────────────────────────────────
                     destinationRow(
                         icon: "folder.fill",
-                        label: "Files",
-                        subtitle: "On My iPhone · Files app",
+                        iconColor: .blue,
+                        label: "Files app",
+                        subtitle: "On My iPhone",
                         destination: .filesApp
                     )
 
                     // ── Installed apps ────────────────────────────────────
                     if catalog.isLoading {
-                        HStack {
+                        Divider().padding(.leading, 36)
+                        HStack(spacing: 6) {
                             ProgressView()
                                 .controlSize(.mini)
                             Text("Loading apps…")
@@ -195,13 +218,7 @@ public struct QueueItemRow: View {
                         }
                         .padding(.horizontal, 12)
                         .padding(.vertical, 10)
-                    } else if catalog.apps.isEmpty {
-                        Text("No third-party apps installed")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                            .padding(.horizontal, 12)
-                            .padding(.vertical, 10)
-                    } else {
+                    } else if !catalog.apps.isEmpty {
                         Divider().padding(.leading, 36)
 
                         Text("App Documents")
@@ -215,6 +232,7 @@ public struct QueueItemRow: View {
                         ForEach(catalog.apps) { app in
                             destinationRow(
                                 icon: "app.badge.fill",
+                                iconColor: .orange,
                                 label: app.displayName,
                                 subtitle: app.bundleId,
                                 destination: .appDocuments(bundleId: app.bundleId)
@@ -223,15 +241,16 @@ public struct QueueItemRow: View {
                     }
                 }
             }
-            .frame(maxHeight: 300)
+            .frame(maxHeight: 280)
         }
-        .frame(width: 240)
+        .frame(width: 230)
         .padding(.bottom, 6)
     }
 
     @ViewBuilder
     private func destinationRow(
-        icon: String,
+        icon: String?,
+        iconColor: Color = .accentColor,
         label: String,
         subtitle: String,
         destination: QueueItemDestination
@@ -243,17 +262,29 @@ public struct QueueItemRow: View {
             showingPicker = false
         }) {
             HStack(spacing: 8) {
-                // Checkmark or spacer
-                Image(systemName: isSelected ? "checkmark" : "")
-                    .font(.system(size: 11, weight: .semibold))
-                    .foregroundColor(.accentColor)
-                    .frame(width: 14)
+                // Checkmark or placeholder spacer
+                if isSelected {
+                    Image(systemName: "checkmark")
+                        .renderingMode(.template)
+                        .font(.system(size: 10, weight: .bold))
+                        .foregroundColor(.accentColor)
+                        .frame(width: 14)
+                } else {
+                    Spacer()
+                        .frame(width: 14)
+                }
 
-                // Destination icon
-                Image(systemName: icon)
-                    .font(.system(size: 12))
-                    .foregroundColor(isSelected ? .accentColor : .secondary)
-                    .frame(width: 16)
+                // Destination icon (if any)
+                if let icon = icon {
+                    Image(systemName: icon)
+                        .renderingMode(.template)
+                        .font(.system(size: 12))
+                        .foregroundColor(isSelected ? .accentColor : iconColor)
+                        .frame(width: 16)
+                } else {
+                    Spacer()
+                        .frame(width: 16)
+                }
 
                 // Labels
                 VStack(alignment: .leading, spacing: 1) {
@@ -274,6 +305,6 @@ public struct QueueItemRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(isSelected ? Color.accentColor.opacity(0.07) : Color.clear)
+        .background(isSelected ? Color.accentColor.opacity(0.08) : Color.clear)
     }
 }

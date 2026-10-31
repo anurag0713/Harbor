@@ -81,6 +81,10 @@ public final class QueueManager: ObservableObject {
     public func setDestinationForAll(_ destination: QueueItemDestination) {
         for index in items.indices {
             if items[index].supportsDestinationOverride {
+                // If destination is .photos, only set it for media files.
+                if destination == .photos && (items[index].kind != .photo && items[index].kind != .video) {
+                    continue
+                }
                 items[index].destination = destination
             }
         }

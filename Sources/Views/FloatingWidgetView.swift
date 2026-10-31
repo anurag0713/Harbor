@@ -382,6 +382,7 @@ public struct FloatingWidgetView: View {
     private var batchDestinationRow: some View {
         HStack(spacing: 6) {
             Image(systemName: "square.and.arrow.down.on.square")
+                .renderingMode(.template)
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
 
@@ -390,21 +391,14 @@ public struct FloatingWidgetView: View {
                 .foregroundColor(.secondary)
 
             Menu {
-                // Auto (smart routing by file type)
+                // Auto (smart routing by file type) - no wand icon
                 Button(action: {
                     queue.setDestinationForAll(.auto)
                 }) {
-                    Label("Auto (Smart routing)", systemImage: "wand.and.stars")
+                    Text("Auto (Smart routing)")
                 }
 
                 Divider()
-
-                // Photos
-                Button(action: {
-                    queue.setDestinationForAll(.photos)
-                }) {
-                    Label("Photos", systemImage: "photo.on.rectangle.fill")
-                }
 
                 // Files app
                 Button(action: {
@@ -428,12 +422,17 @@ public struct FloatingWidgetView: View {
                     }
                 }
             } label: {
-                HStack(spacing: 3) {
-                    Image(systemName: batchTargetIcon)
-                        .font(.system(size: 10))
+                HStack(spacing: 4) {
+                    if let icon = batchTargetIcon {
+                        Image(systemName: icon)
+                            .renderingMode(.template)
+                            .font(.system(size: 9))
+                    }
                     Text(batchTargetLabel)
                         .font(.system(size: 10, weight: .semibold))
+                        .lineLimit(1)
                     Image(systemName: "chevron.up.chevron.down")
+                        .renderingMode(.template)
                         .font(.system(size: 8))
                 }
                 .foregroundColor(isBatchTargetHighlighted ? .accentColor : .secondary)
@@ -480,12 +479,21 @@ public struct FloatingWidgetView: View {
         }
     }
 
-    private var batchTargetIcon: String {
+    private var batchTargetIcon: String? {
         switch queue.batchDestinationState {
-        case .none:
-            return "wand.and.stars"
+        case .none, .uniform(.auto):
+            return nil // Clean text only, no wand icon
         case .uniform(let dest):
-            return dest.systemImage
+            switch dest {
+            case .auto:
+                return nil
+            case .filesApp:
+                return "folder.fill"
+            case .photos:
+                return "photo.on.rectangle.fill"
+            case .appDocuments:
+                return "app.badge.fill"
+            }
         case .mixed:
             return "slider.horizontal.3"
         }
