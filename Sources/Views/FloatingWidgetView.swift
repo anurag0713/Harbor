@@ -320,11 +320,11 @@ public struct FloatingWidgetView: View {
                 .help(status)
             }
 
-            // ── Batch document target ─────────────────────────────────────────
-            // Show when there are queued items that are general documents and the
-            // queue isn't already mid-send.
-            if !queue.isSending && hasDocumentItems {
-                batchDocumentTargetRow
+            // ── Batch destination row ─────────────────────────────────────────
+            // Allows user to route all eligible files in one click.
+            // Individual pills can still be overridden afterwards.
+            if canConfigureBatchTarget {
+                batchDestinationRow
             }
 
             // ── Clear / Send ──────────────────────────────────────────────────
@@ -369,49 +369,60 @@ public struct FloatingWidgetView: View {
         }
     }
 
-    // MARK: - Batch Document Target Row
+    // MARK: - Batch Destination Row
 
-    /// True when the queue has at least one general-document item that isn't
-    /// already overridden to a specific destination.
-    private var hasDocumentItems: Bool {
-        queue.items.contains { $0.kind == .generalDocument && $0.destination.isAuto }
+    /// True when the queue has at least one item that supports destination override
+    /// and a transfer is not actively in progress.
+    private var canConfigureBatchTarget: Bool {
+        !queue.isSending && queue.items.contains(where: \.supportsDestinationOverride)
     }
 
-    /// A compact row in the footer that lets the user override the destination for
-    /// all auto-routed general-document items in a single step.
-    private var batchDocumentTargetRow: some View {
+    /// A compact row in the footer that lets the user set the destination for
+    /// all queued files in a single step, updating every individual row's pill.
+    private var batchDestinationRow: some View {
         HStack(spacing: 6) {
-            Image(systemName: "folder.badge.gearshape")
+            Image(systemName: "square.and.arrow.down.on.square")
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
 
-            Text("Documents →")
+            Text("Send all to →")
                 .font(.system(size: 10, weight: .medium))
                 .foregroundColor(.secondary)
 
-            // Inline Picker using a Menu button so it doesn't consume space
             Menu {
-                // Auto
-                Button(action: { queue.globalDocumentTarget = .auto }) {
-                    Label("Auto (Files app)", systemImage: "wand.and.stars")
-                }
-                if queue.globalDocumentTarget.isAuto {
-                    // show checkmark — Menu in SwiftUI doesn't auto-checkmark, so we
-                    // prepend a checkmark via the label
+                // Auto (smart routing by file type)
+                Button(action: {
+                    queue.setDestinationForAll(.auto)
+                }) {
+                    Label("Auto (Smart routing)", systemImage: "wand.and.stars")
                 }
 
                 Divider()
 
+                // Photos
+                Button(action: {
+                    queue.setDestinationForAll(.photos)
+                }) {
+                    Label("Photos", systemImage: "photo.on.rectangle.fill")
+                }
+
                 // Files app
-                Button(action: { queue.globalDocumentTarget = .filesApp }) {
+                Button(action: {
+                    queue.setDestinationForAll(.filesApp)
+                }) {
                     Label("Files app", systemImage: "folder.fill")
                 }
 
                 // Installed apps
-                if !catalog.apps.isEmpty {
+                if catalog.isLoading {
+                    Divider()
+                    Text("Loading apps…")
+                } else if !catalog.apps.isEmpty {
                     Divider()
                     ForEach(catalog.apps) { app in
-                        Button(action: { queue.globalDocumentTarget = .appDocuments(bundleId: app.bundleId) }) {
+                        Button(action: {
+                            queue.setDestinationForAll(.appDocuments(bundleId: app.bundleId))
+                        }) {
                             Label(app.displayName, systemImage: "app.badge.fill")
                         }
                     }
@@ -425,14 +436,14 @@ public struct FloatingWidgetView: View {
                     Image(systemName: "chevron.up.chevron.down")
                         .font(.system(size: 8))
                 }
-                .foregroundColor(queue.globalDocumentTarget.isAuto ? .secondary : .accentColor)
+                .foregroundColor(isBatchTargetHighlighted ? .accentColor : .secondary)
                 .padding(.horizontal, 6)
                 .padding(.vertical, 3)
                 .background(
                     Capsule()
-                        .fill(queue.globalDocumentTarget.isAuto
-                              ? Color.primary.opacity(0.07)
-                              : Color.accentColor.opacity(0.12))
+                        .fill(isBatchTargetHighlighted
+                              ? Color.accentColor.opacity(0.12)
+                              : Color.primary.opacity(0.07))
                 )
             }
             .menuStyle(.borderlessButton)
@@ -450,21 +461,42 @@ public struct FloatingWidgetView: View {
     }
 
     private var batchTargetLabel: String {
-        switch queue.globalDocumentTarget {
-        case .auto:                         return "Auto"
-        case .filesApp:                     return "Files"
-        case .photos:                       return "Photos"
-        case .appDocuments(let bundleId):
-            return catalog.apps.first(where: { $0.bundleId == bundleId })?.displayName ?? bundleId
+        switch queue.batchDestinationState {
+        case .none:
+            return "Auto"
+        case .uniform(let dest):
+            switch dest {
+            case .auto:
+                return "Auto"
+            case .filesApp:
+                return "Files"
+            case .photos:
+                return "Photos"
+            case .appDocuments(let bundleId):
+                return catalog.apps.first(where: { $0.bundleId == bundleId })?.displayName ?? bundleId
+            }
+        case .mixed:
+            return "Mixed"
         }
     }
 
     private var batchTargetIcon: String {
-        switch queue.globalDocumentTarget {
-        case .auto:                         return "wand.and.stars"
-        case .filesApp:                     return "folder.fill"
-        case .photos:                       return "photo.on.rectangle.fill"
-        case .appDocuments:                 return "app.badge.fill"
+        switch queue.batchDestinationState {
+        case .none:
+            return "wand.and.stars"
+        case .uniform(let dest):
+            return dest.systemImage
+        case .mixed:
+            return "slider.horizontal.3"
+        }
+    }
+
+    private var isBatchTargetHighlighted: Bool {
+        switch queue.batchDestinationState {
+        case .none, .uniform(.auto):
+            return false
+        case .uniform, .mixed:
+            return true
         }
     }
 

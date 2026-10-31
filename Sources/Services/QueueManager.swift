@@ -13,9 +13,23 @@ public final class QueueManager: ObservableObject {
     @Published public private(set) var completedCount: Int = 0
     @Published public private(set) var totalCount: Int = 0
 
-    /// Global destination override applied to all `.auto` general-document items in the
-    /// next batch. Setting this from the footer lets users route a whole drop in one step.
-    @Published public var globalDocumentTarget: QueueItemDestination = .auto
+    public enum BatchDestinationState: Equatable {
+        case none
+        case uniform(QueueItemDestination)
+        case mixed
+    }
+
+    /// The collective destination state of all eligible items in the queue.
+    public var batchDestinationState: BatchDestinationState {
+        let eligible = items.filter(\.supportsDestinationOverride)
+        guard !eligible.isEmpty else { return .none }
+        let first = eligible[0].destination
+        if eligible.allSatisfy({ $0.destination == first }) {
+            return .uniform(first)
+        } else {
+            return .mixed
+        }
+    }
 
     private var activeBatchIDs: Set<UUID> = []
 
@@ -25,9 +39,23 @@ public final class QueueManager: ObservableObject {
 
     public func add(urls: [URL]) {
         let expanded = expandDirectories(urls)
+
+        // If all existing items currently share an explicit uniform destination,
+        // new items adopt it too for a seamless workflow.
+        let defaultDest: QueueItemDestination
+        if case .uniform(let dest) = batchDestinationState, !dest.isAuto {
+            defaultDest = dest
+        } else {
+            defaultDest = .auto
+        }
+
         for url in expanded {
             if !items.contains(where: { $0.url.standardizedFileURL == url.standardizedFileURL }) {
-                items.append(QueueItem(url: url))
+                var newItem = QueueItem(url: url)
+                if newItem.supportsDestinationOverride {
+                    newItem.destination = defaultDest
+                }
+                items.append(newItem)
             }
         }
     }
@@ -40,7 +68,6 @@ public final class QueueManager: ObservableObject {
     public func clear() {
         guard !isSending else { return }
         items.removeAll()
-        globalDocumentTarget = .auto
         statusMessage = nil
     }
 
@@ -48,6 +75,15 @@ public final class QueueManager: ObservableObject {
     public func setDestination(_ destination: QueueItemDestination, for id: UUID) {
         guard let index = items.firstIndex(where: { $0.id == id }) else { return }
         items[index].destination = destination
+    }
+
+    /// Updates the destination for all eligible items in the queue (e.g. from the batch dropdown).
+    public func setDestinationForAll(_ destination: QueueItemDestination) {
+        for index in items.indices {
+            if items[index].supportsDestinationOverride {
+                items[index].destination = destination
+            }
+        }
     }
 
     // MARK: - Transfer
@@ -69,8 +105,7 @@ public final class QueueManager: ObservableObject {
         let result = await FileRouter.shared.routeAndTransfer(
             items: sortedItems,
             targetDevice: targetDevice,
-            fallbackBundleId: targetBundleId,
-            globalDocumentTarget: globalDocumentTarget
+            fallbackBundleId: targetBundleId
         )
 
         isSending = false
@@ -83,8 +118,6 @@ public final class QueueManager: ObservableObject {
             // Only remove items that were part of this batch — items dropped during
             // the transfer are preserved for the next send.
             items.removeAll { batchItemIDs.contains($0.id) }
-            // Reset the global document target after a successful send.
-            globalDocumentTarget = .auto
 
             DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
                 guard let self = self else { return }
