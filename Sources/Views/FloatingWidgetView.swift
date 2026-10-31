@@ -5,6 +5,7 @@ public struct FloatingWidgetView: View {
     @ObservedObject var discovery = SimulatorDiscovery.shared
     @ObservedObject var queue = QueueManager.shared
     @ObservedObject var controller = FloatingWidgetController.shared
+    @ObservedObject var catalog = AppCatalog.shared
 
     @State private var isTargeted: Bool = false
     @State private var isShowingLinkPrompt: Bool = false
@@ -257,9 +258,11 @@ public struct FloatingWidgetView: View {
             ScrollView {
                 LazyVStack(spacing: 6) {
                     ForEach(queue.items) { item in
-                        QueueItemRow(item: item) {
-                            queue.remove(id: item.id)
-                        }
+                        QueueItemRow(
+                            item: item,
+                            onRemove: { queue.remove(id: item.id) },
+                            onDestinationChange: { dest in queue.setDestination(dest, for: item.id) }
+                        )
                     }
                 }
                 .padding(.vertical, 2)
@@ -317,6 +320,14 @@ public struct FloatingWidgetView: View {
                 .help(status)
             }
 
+            // ── Batch document target ─────────────────────────────────────────
+            // Show when there are queued items that are general documents and the
+            // queue isn't already mid-send.
+            if !queue.isSending && hasDocumentItems {
+                batchDocumentTargetRow
+            }
+
+            // ── Clear / Send ──────────────────────────────────────────────────
             HStack(spacing: 8) {
                 if !queue.items.isEmpty {
                     Button("Clear") {
@@ -355,6 +366,105 @@ public struct FloatingWidgetView: View {
                 .buttonStyle(.plain)
                 .disabled(queue.items.isEmpty || queue.isSending)
             }
+        }
+    }
+
+    // MARK: - Batch Document Target Row
+
+    /// True when the queue has at least one general-document item that isn't
+    /// already overridden to a specific destination.
+    private var hasDocumentItems: Bool {
+        queue.items.contains { $0.kind == .generalDocument && $0.destination.isAuto }
+    }
+
+    /// A compact row in the footer that lets the user override the destination for
+    /// all auto-routed general-document items in a single step.
+    private var batchDocumentTargetRow: some View {
+        HStack(spacing: 6) {
+            Image(systemName: "folder.badge.gearshape")
+                .font(.system(size: 10))
+                .foregroundColor(.secondary)
+
+            Text("Documents →")
+                .font(.system(size: 10, weight: .medium))
+                .foregroundColor(.secondary)
+
+            // Inline Picker using a Menu button so it doesn't consume space
+            Menu {
+                // Auto
+                Button(action: { queue.globalDocumentTarget = .auto }) {
+                    Label("Auto (Files app)", systemImage: "wand.and.stars")
+                }
+                if queue.globalDocumentTarget.isAuto {
+                    // show checkmark — Menu in SwiftUI doesn't auto-checkmark, so we
+                    // prepend a checkmark via the label
+                }
+
+                Divider()
+
+                // Files app
+                Button(action: { queue.globalDocumentTarget = .filesApp }) {
+                    Label("Files app", systemImage: "folder.fill")
+                }
+
+                // Installed apps
+                if !catalog.apps.isEmpty {
+                    Divider()
+                    ForEach(catalog.apps) { app in
+                        Button(action: { queue.globalDocumentTarget = .appDocuments(bundleId: app.bundleId) }) {
+                            Label(app.displayName, systemImage: "app.badge.fill")
+                        }
+                    }
+                }
+            } label: {
+                HStack(spacing: 3) {
+                    Image(systemName: batchTargetIcon)
+                        .font(.system(size: 10))
+                    Text(batchTargetLabel)
+                        .font(.system(size: 10, weight: .semibold))
+                    Image(systemName: "chevron.up.chevron.down")
+                        .font(.system(size: 8))
+                }
+                .foregroundColor(queue.globalDocumentTarget.isAuto ? .secondary : .accentColor)
+                .padding(.horizontal, 6)
+                .padding(.vertical, 3)
+                .background(
+                    Capsule()
+                        .fill(queue.globalDocumentTarget.isAuto
+                              ? Color.primary.opacity(0.07)
+                              : Color.accentColor.opacity(0.12))
+                )
+            }
+            .menuStyle(.borderlessButton)
+            .fixedSize()
+            .onAppear {
+                // Pre-load the app list when the footer becomes visible
+                if let udid = discovery.selectedDevice?.udid {
+                    catalog.fetchIfNeeded(for: udid)
+                }
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.horizontal, 4)
+    }
+
+    private var batchTargetLabel: String {
+        switch queue.globalDocumentTarget {
+        case .auto:                         return "Auto"
+        case .filesApp:                     return "Files"
+        case .photos:                       return "Photos"
+        case .appDocuments(let bundleId):
+            return catalog.apps.first(where: { $0.bundleId == bundleId })?.displayName ?? bundleId
+        }
+    }
+
+    private var batchTargetIcon: String {
+        switch queue.globalDocumentTarget {
+        case .auto:                         return "wand.and.stars"
+        case .filesApp:                     return "folder.fill"
+        case .photos:                       return "photo.on.rectangle.fill"
+        case .appDocuments:                 return "app.badge.fill"
         }
     }
 

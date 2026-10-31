@@ -81,12 +81,22 @@ public struct QueueItem: Identifiable, Hashable, Sendable {
     public let url: URL
     public let kind: QueueItemKind
     public var failureMessage: String?
+    /// Where this item will be sent. Defaults to `.auto` (smart routing by file type).
+    public var destination: QueueItemDestination = .auto
 
     public init(url: URL) {
         self.id = UUID()
         self.url = url
         self.kind = QueueItemKind(url: url)
         self.failureMessage = nil
+    }
+
+    /// Whether this item supports a destination chip (apps/links are always fixed-route).
+    public var supportsDestinationOverride: Bool {
+        switch kind {
+        case .app, .link, .apnsPayload: return false
+        default: return true
+        }
     }
 
     public var name: String {
