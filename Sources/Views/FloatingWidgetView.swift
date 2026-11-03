@@ -431,6 +431,8 @@ public struct FloatingWidgetView: View {
                     Text(batchTargetLabel)
                         .font(.system(size: 10, weight: .semibold))
                         .lineLimit(1)
+                        .truncationMode(.tail)
+                        .frame(maxWidth: 140)
                     Image(systemName: "chevron.up.chevron.down")
                         .renderingMode(.template)
                         .font(.system(size: 8))

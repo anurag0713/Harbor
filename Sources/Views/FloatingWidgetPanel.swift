@@ -45,7 +45,7 @@ public final class FloatingWidgetController: ObservableObject {
 public final class FloatingWidgetPanel: NSPanel {
     public static let shared = FloatingWidgetPanel()
 
-    public static let panelWidth: CGFloat = 320
+    public static let panelWidth: CGFloat = 350
     public static let expandedHeight: CGFloat = 410
     public static let collapsedHeight: CGFloat = 44
 
