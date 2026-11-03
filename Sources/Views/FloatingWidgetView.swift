@@ -432,7 +432,7 @@ public struct FloatingWidgetView: View {
                         .font(.system(size: 10, weight: .semibold))
                         .lineLimit(1)
                         .truncationMode(.tail)
-                        .frame(maxWidth: 140)
+                        .frame(maxWidth: 90)
                     Image(systemName: "chevron.up.chevron.down")
                         .renderingMode(.template)
                         .font(.system(size: 8))

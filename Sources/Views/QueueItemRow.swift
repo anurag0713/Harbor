@@ -45,6 +45,7 @@ public struct QueueItemRow: View {
                         .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(.secondary)
                         .lineLimit(1)
+                        .fixedSize(horizontal: true, vertical: false)
 
                     if !item.formattedSize.isEmpty {
                         Text("·")
@@ -54,10 +55,11 @@ public struct QueueItemRow: View {
                             .font(.system(size: 10))
                             .foregroundColor(.secondary.opacity(0.8))
                             .lineLimit(1)
+                            .fixedSize(horizontal: true, vertical: false)
                     }
                 }
-                .layoutPriority(1)
             }
+            .layoutPriority(1)
 
             Spacer(minLength: 4)
 
@@ -106,7 +108,7 @@ public struct QueueItemRow: View {
                     .font(.system(size: 10, weight: .semibold))
                     .lineLimit(1)
                     .truncationMode(.tail)
-                    .frame(maxWidth: 130)
+                    .frame(maxWidth: 75)
                     .foregroundColor(chipContentColor)
 
                 Image(systemName: "chevron.down")
