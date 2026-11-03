@@ -14,8 +14,8 @@ targets:
       properties:
         LSUIElement: true
         CFBundleDisplayName: Harbor
-        CFBundleShortVersionString: "1.1.0"
-        CFBundleVersion: "2"
+        CFBundleShortVersionString: "1.2.0"
+        CFBundleVersion: "3"
         NSHumanReadableCopyright: "Copyright © 2026 Anurag Singh. All rights reserved."
     settings:
       base:

@@ -9,6 +9,8 @@ public final class QueueManager: ObservableObject {
     @Published public private(set) var items: [QueueItem] = []
     @Published public private(set) var isSending: Bool = false
     @Published public private(set) var statusMessage: String?
+    @Published public private(set) var successMessage: String?
+    @Published public private(set) var errorMessage: String?
     @Published public private(set) var isSuccess: Bool = true
     @Published public private(set) var completedCount: Int = 0
     @Published public private(set) var totalCount: Int = 0
@@ -32,12 +34,17 @@ public final class QueueManager: ObservableObject {
     }
 
     private var activeBatchIDs: Set<UUID> = []
+    private var activeTransferTask: Task<BatchTransferResult, Never>?
 
     private init() {}
 
     // MARK: - Queue mutation
 
     public func add(urls: [URL]) {
+        if !isSending {
+            errorMessage = nil
+            statusMessage = nil
+        }
         let expanded = expandDirectories(urls)
 
         // If all existing items currently share an explicit uniform destination,
@@ -63,12 +70,32 @@ public final class QueueManager: ObservableObject {
     public func remove(id: UUID) {
         guard !activeBatchIDs.contains(id) else { return }
         items.removeAll { $0.id == id }
+        if items.isEmpty {
+            statusMessage = nil
+            successMessage = nil
+            errorMessage = nil
+        }
     }
 
     public func clear() {
         guard !isSending else { return }
         items.removeAll()
         statusMessage = nil
+        successMessage = nil
+        errorMessage = nil
+    }
+
+    public func dismissError() {
+        errorMessage = nil
+        statusMessage = successMessage
+    }
+
+    /// Stops the in-progress transfer cleanly. Succeeded files remain transferred,
+    /// and unsent files remain safely in the queue.
+    public func cancelSend() {
+        guard isSending else { return }
+        statusMessage = "Stopping..."
+        activeTransferTask?.cancel()
     }
 
     /// Updates the destination for a single queued item.
@@ -99,34 +126,73 @@ public final class QueueManager: ObservableObject {
         totalCount = items.count
         completedCount = 0
         statusMessage = "Sending \(items.count) item(s)..."
+        successMessage = nil
+        errorMessage = nil
         isSuccess = true
+
+        // Clear previous failure messages on items before this attempt
+        for index in items.indices {
+            items[index].failureReason = nil
+            items[index].failureMessage = nil
+        }
 
         // Snapshot the batch by priority order; items added after this point are NOT in this batch.
         let sortedItems = items.sorted { $0.kind.priorityOrder < $1.kind.priorityOrder }
         let batchItemIDs = Set(sortedItems.map(\.id))
         activeBatchIDs = batchItemIDs
 
-        let result = await FileRouter.shared.routeAndTransfer(
-            items: sortedItems,
-            targetDevice: targetDevice,
-            fallbackBundleId: targetBundleId
-        )
+        let task = Task { [weak self] in
+            await FileRouter.shared.routeAndTransfer(
+                items: sortedItems,
+                targetDevice: targetDevice,
+                fallbackBundleId: targetBundleId,
+                onItemSuccess: { [weak self] itemID in
+                    guard let self = self else { return }
+                    self.items.removeAll { $0.id == itemID }
+                    self.completedCount += 1
+                    self.statusMessage = "Sending (\(self.completedCount)/\(self.totalCount))..."
+                }
+            )
+        }
+        self.activeTransferTask = task
+        let result = await task.value
+        self.activeTransferTask = nil
 
         isSending = false
         activeBatchIDs.removeAll()
-        isSuccess = result.isSuccess
         completedCount = totalCount
-        statusMessage = result.message
 
-        if result.isSuccess {
-            // Only remove items that were part of this batch — items dropped during
-            // the transfer are preserved for the next send.
-            items.removeAll { batchItemIDs.contains($0.id) }
+        // 1. Remove successfully sent items that were in this batch (ensures full sync)
+        items.removeAll { result.successfulItemIDs.contains($0.id) }
 
-            DispatchQueue.main.asyncAfter(deadline: .now() + 3.0) { [weak self] in
+        // 2. Attach failure reasons and messages to remaining failed items
+        for index in items.indices {
+            if let err = result.itemErrors[items[index].id] {
+                items[index].failureReason = err.shortReason
+                items[index].failureMessage = err.detailedExplanation
+            }
+        }
+
+        // 3. Update feedback state
+        isSuccess = result.isSuccess
+        successMessage = result.successSummary
+        errorMessage = result.errorSummary
+
+        if let err = result.errorSummary, let succ = result.successSummary {
+            statusMessage = "\(succ) • \(err)"
+        } else {
+            statusMessage = result.errorSummary ?? result.successSummary
+        }
+
+        // 4. Auto-dismiss green success message after 3.5 seconds
+        if let succ = result.successSummary {
+            DispatchQueue.main.asyncAfter(deadline: .now() + 3.5) { [weak self] in
                 guard let self = self else { return }
-                if self.statusMessage == result.message {
-                    self.statusMessage = nil
+                if self.successMessage == succ {
+                    self.successMessage = nil
+                    if self.errorMessage == nil {
+                        self.statusMessage = nil
+                    }
                 }
             }
         }

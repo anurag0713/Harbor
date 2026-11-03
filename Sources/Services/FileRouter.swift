@@ -64,49 +64,44 @@ public final class FileRouter {
     // MARK: - Primary transfer entry point
 
     /// Routes and transfers a batch of `QueueItem`s, respecting each item's `.destination`
-    /// override.  Items with `.auto` destination use smart file-type routing.
+    /// override. Items with `.auto` destination use smart file-type routing.
     /// The `globalDocumentTarget` is applied to any `.auto` general-document items that
     /// don't have their own override — giving the user a batch shortcut from the footer.
     public func routeAndTransfer(
         items: [QueueItem],
         targetDevice: String = "booted",
         fallbackBundleId: String? = nil,
-        globalDocumentTarget: QueueItemDestination = .auto
-    ) async -> TransferResult {
+        globalDocumentTarget: QueueItemDestination = .auto,
+        onItemSuccess: (@MainActor (UUID) -> Void)? = nil
+    ) async -> BatchTransferResult {
         guard !items.isEmpty else {
-            return .failure("No files to send")
+            return BatchTransferResult(
+                successfulItemIDs: [],
+                failedItemIDs: [],
+                successMessages: [],
+                itemErrors: [:]
+            )
         }
 
-        // ── Build routing buckets ─────────────────────────────────────────────
-        var appBundles: [URL]           = []
-        var mediaBatch: [URL]           = []
-        var filesAppBatch: [URL]        = []
-        var appDocsBatch: [String: [URL]] = [:]  // bundleId → [URL]
-        var linkBatch: [URL]            = []
-        var apnsBatch: [URL]            = []
+        // ── Build routing buckets with item tracking ─────────────────────────
+        var appItems: [QueueItem]               = []
+        var mediaItems: [QueueItem]             = []
+        var filesAppItems: [QueueItem]          = []
+        var appDocsItems: [String: [QueueItem]] = [:]  // bundleId → [QueueItem]
+        var linkItems: [QueueItem]              = []
+        var apnsItems: [QueueItem]              = []
 
         for item in items {
-            let url = item.url
-
             // Fixed-route item kinds — user cannot override these.
             switch item.kind {
             case .app:
-                appBundles.append(url)
+                appItems.append(item)
                 continue
             case .apnsPayload:
-                apnsBatch.append(url)
+                apnsItems.append(item)
                 continue
             case .link:
-                // .link covers both real URLs and .webloc / .url shortcut files.
-                if url.isFileURL {
-                    // Webloc / .url file — extract the real URL, drop the file path.
-                    if let realURL = extractURLFromShortcutFile(url: url) {
-                        linkBatch.append(realURL)
-                    }
-                    // If extraction fails, silently skip (malformed shortcut file).
-                } else {
-                    linkBatch.append(url)
-                }
+                linkItems.append(item)
                 continue
             default:
                 break
@@ -117,77 +112,170 @@ public final class FileRouter {
 
             switch effective {
             case .auto:
-                // Should not reach here after resolveDestination, but guard anyway.
-                filesAppBatch.append(url)
+                filesAppItems.append(item)
             case .photos:
-                mediaBatch.append(url)
+                mediaItems.append(item)
             case .filesApp:
-                filesAppBatch.append(url)
+                filesAppItems.append(item)
             case .appDocuments(let bundleId):
-                appDocsBatch[bundleId, default: []].append(url)
+                appDocsItems[bundleId, default: []].append(item)
             }
         }
 
-        // ── Execute all buckets and collect results ───────────────────────────
-        var messages: [String] = []
-        var allSucceeded = true
+        var successfulItemIDs = Set<UUID>()
+        var failedItemIDs = Set<UUID>()
+        var successMessages: [String] = []
+        var itemErrors: [UUID: ItemTransferError] = [:]
 
-        func record(_ result: TransferResult) {
-            messages.append(result.message)
-            if !result.isSuccess { allSucceeded = false }
+        // 1. Install .app bundles (individually tracked)
+        for item in appItems {
+            if Task.isCancelled {
+                failedItemIDs.insert(item.id)
+                itemErrors[item.id] = ItemTransferError.general(short: "Stopped by user", detailed: "Transfer was stopped.")
+                continue
+            }
+            let res = await SimulatorService.shared.installApp(device: targetDevice, fileURL: item.url)
+            if res.isSuccess {
+                successfulItemIDs.insert(item.id)
+                successMessages.append(res.message)
+                await onItemSuccess?(item.id)
+            } else {
+                failedItemIDs.insert(item.id)
+                itemErrors[item.id] = res.errorDetail ?? ItemTransferError.general(short: res.message, detailed: res.message)
+            }
         }
 
-        // Install .app bundles
-        for url in appBundles {
-            record(await SimulatorService.shared.installApp(device: targetDevice, fileURL: url))
+        // 2. Add media → Photos (progressive chunking with live success callbacks)
+        if !mediaItems.isEmpty {
+            let mediaRes = await SimulatorService.shared.addMediaProgressive(
+                device: targetDevice,
+                items: mediaItems,
+                onItemSuccess: onItemSuccess
+            )
+            successfulItemIDs.formUnion(mediaRes.succeededIDs)
+            failedItemIDs.formUnion(mediaRes.failedIDs)
+            for (id, err) in mediaRes.errors {
+                itemErrors[id] = err
+            }
+            if !mediaRes.succeededIDs.isEmpty {
+                let count = mediaRes.succeededIDs.count
+                let label = count == 1 ? "1 item" : "\(count) items"
+                successMessages.append("Imported \(label) into Photos")
+            }
         }
 
-        // Add media → Photos
-        if !mediaBatch.isEmpty {
-            record(await SimulatorService.shared.addMedia(device: targetDevice, fileURLs: mediaBatch))
+        // 3. Copy to Files app (progressive live copy)
+        if !filesAppItems.isEmpty {
+            let filesRes = await SimulatorService.shared.copyFilesToFilesAppProgressive(
+                device: targetDevice,
+                items: filesAppItems,
+                onItemSuccess: onItemSuccess
+            )
+            successfulItemIDs.formUnion(filesRes.succeededIDs)
+            failedItemIDs.formUnion(filesRes.failedIDs)
+            for (id, err) in filesRes.errors {
+                itemErrors[id] = err
+            }
+            if !filesRes.succeededIDs.isEmpty {
+                let count = filesRes.succeededIDs.count
+                let label = count == 1 ? "1 file" : "\(count) files"
+                successMessages.append("Imported \(label) into Files app")
+            }
         }
 
-        // Copy to Files app
-        if !filesAppBatch.isEmpty {
-            record(await SimulatorService.shared.copyFilesToFilesApp(device: targetDevice, fileURLs: filesAppBatch))
+        // 4. Copy to specific app Documents (progressive live copy)
+        for (bundleId, groupItems) in appDocsItems {
+            let appRes = await SimulatorService.shared.copyFilesToAppProgressive(
+                device: targetDevice,
+                bundleId: bundleId,
+                items: groupItems,
+                onItemSuccess: onItemSuccess
+            )
+            successfulItemIDs.formUnion(appRes.succeededIDs)
+            failedItemIDs.formUnion(appRes.failedIDs)
+            for (id, err) in appRes.errors {
+                itemErrors[id] = err
+            }
+            if !appRes.succeededIDs.isEmpty {
+                let count = appRes.succeededIDs.count
+                let label = count == 1 ? "1 file" : "\(count) files"
+                successMessages.append("Copied \(label) into \(bundleId)")
+            }
         }
 
-        // Copy to specific app Documents — resolve container fresh for each bundle.
-        for (bundleId, urls) in appDocsBatch {
-            record(await SimulatorService.shared.copyFilesToApp(device: targetDevice, bundleId: bundleId, fileURLs: urls))
+        // 5. Open links / deep-links (individually tracked)
+        for item in linkItems {
+            if Task.isCancelled {
+                failedItemIDs.insert(item.id)
+                itemErrors[item.id] = ItemTransferError.general(short: "Stopped by user", detailed: "Transfer was stopped.")
+                continue
+            }
+            let targetURL: URL
+            if item.url.isFileURL {
+                if let extracted = extractURLFromShortcutFile(url: item.url) {
+                    targetURL = extracted
+                } else {
+                    failedItemIDs.insert(item.id)
+                    let err = "Invalid link shortcut file “\(item.name)”"
+                    itemErrors[item.id] = ItemTransferError.general(short: "Invalid shortcut", detailed: err)
+                    continue
+                }
+            } else {
+                targetURL = item.url
+            }
+
+            let res = await SimulatorService.shared.openURL(device: targetDevice, url: targetURL)
+            if res.isSuccess {
+                successfulItemIDs.insert(item.id)
+                successMessages.append(res.message)
+                await onItemSuccess?(item.id)
+            } else {
+                failedItemIDs.insert(item.id)
+                itemErrors[item.id] = res.errorDetail ?? ItemTransferError.general(short: res.message, detailed: res.message)
+            }
         }
 
-        // Open links / deep-links
-        for url in linkBatch {
-            record(await SimulatorService.shared.openURL(device: targetDevice, url: url))
-        }
-
-        // Push APNs payloads
-        for url in apnsBatch {
-            let bundleId = fallbackBundleId ?? (extractBundleIdFromAPNS(url: url) ?? "")
+        // 6. Push APNs payloads (individually tracked)
+        for item in apnsItems {
+            if Task.isCancelled {
+                failedItemIDs.insert(item.id)
+                itemErrors[item.id] = ItemTransferError.general(short: "Stopped by user", detailed: "Transfer was stopped.")
+                continue
+            }
+            let bundleId = fallbackBundleId ?? (extractBundleIdFromAPNS(url: item.url) ?? "")
             if bundleId.isEmpty {
-                messages.append("APNs dropped but no target bundle ID found")
-                allSucceeded = false
+                let err = "APNs file “\(item.name)” has no target bundle ID"
+                failedItemIDs.insert(item.id)
+                itemErrors[item.id] = ItemTransferError.general(short: "No bundle ID", detailed: err)
             } else {
                 do {
                     let res = try await SimulatorService.shared.runXcrun(
-                        arguments: ["simctl", "push", targetDevice, bundleId, url.path]
+                        arguments: ["simctl", "push", targetDevice, bundleId, item.url.path]
                     )
                     if res.exitCode == 0 {
-                        messages.append("Pushed APNs notification to \(bundleId)")
+                        successfulItemIDs.insert(item.id)
+                        successMessages.append("Pushed APNs notification to \(bundleId)")
+                        await onItemSuccess?(item.id)
                     } else {
-                        messages.append("APNs push failed: \(res.error)")
-                        allSucceeded = false
+                        let concise = SimulatorService.conciseMessage(res.error)
+                        let err = "APNs push failed: \(concise)"
+                        failedItemIDs.insert(item.id)
+                        itemErrors[item.id] = ItemTransferError.general(short: "Push failed", detailed: err)
                     }
                 } catch {
-                    messages.append("APNs error: \(error.localizedDescription)")
-                    allSucceeded = false
+                    let err = "APNs error: \(error.localizedDescription)"
+                    failedItemIDs.insert(item.id)
+                    itemErrors[item.id] = ItemTransferError.general(short: "Push error", detailed: err)
                 }
             }
         }
 
-        let summary = messages.joined(separator: " • ")
-        return allSucceeded ? .success(summary) : .failure(summary)
+        return BatchTransferResult(
+            successfulItemIDs: successfulItemIDs,
+            failedItemIDs: failedItemIDs,
+            successMessages: successMessages,
+            itemErrors: itemErrors
+        )
     }
 
     // MARK: - Destination resolution

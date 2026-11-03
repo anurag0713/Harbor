@@ -21,16 +21,24 @@ public struct QueueItemRow: View {
 
     public var body: some View {
         HStack(spacing: 8) {
-            // ── File-type icon (uniform clean white) ──────────────────────────
-            ZStack {
+            // ── File-type icon (with error indicator if failed) ─────────────
+            ZStack(alignment: .bottomTrailing) {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(Color.white.opacity(0.08))
+                    .fill(item.failureReason != nil ? Color.red.opacity(0.12) : Color.white.opacity(0.08))
                     .frame(width: 28, height: 28)
 
                 Image(systemName: item.kind.systemImage)
                     .renderingMode(.template)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(.white)
+                    .foregroundColor(item.failureReason != nil ? Color.red.opacity(0.9) : .white)
+
+                if item.failureReason != nil {
+                    Image(systemName: "exclamationmark.circle.fill")
+                        .font(.system(size: 8, weight: .bold))
+                        .foregroundColor(.red)
+                        .background(Circle().fill(Color(nsColor: .windowBackgroundColor)))
+                        .offset(x: 2, y: 2)
+                }
             }
 
             // ── Name & Subtitle ───────────────────────────────────────────────
@@ -40,22 +48,31 @@ public struct QueueItemRow: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
 
-                HStack(spacing: 4) {
-                    Text(item.kind.title)
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundColor(.secondary)
+                if let reason = item.failureReason ?? item.failureMessage {
+                    Text(reason)
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.red)
                         .lineLimit(1)
-                        .fixedSize(horizontal: true, vertical: false)
-
-                    if !item.formattedSize.isEmpty {
-                        Text("·")
-                            .font(.system(size: 8))
-                            .foregroundColor(.secondary.opacity(0.5))
-                        Text(item.formattedSize)
-                            .font(.system(size: 10))
-                            .foregroundColor(.secondary.opacity(0.8))
+                        .truncationMode(.tail)
+                        .help(item.failureMessage ?? reason)
+                } else {
+                    HStack(spacing: 4) {
+                        Text(item.kind.title)
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundColor(.secondary)
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
+
+                        if !item.formattedSize.isEmpty {
+                            Text("·")
+                                .font(.system(size: 8))
+                                .foregroundColor(.secondary.opacity(0.5))
+                            Text(item.formattedSize)
+                                .font(.system(size: 10))
+                                .foregroundColor(.secondary.opacity(0.8))
+                                .lineLimit(1)
+                                .fixedSize(horizontal: true, vertical: false)
+                        }
                     }
                 }
             }

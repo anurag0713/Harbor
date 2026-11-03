@@ -101,17 +101,23 @@ public struct FloatingWidgetView: View {
 
                 Spacer()
 
-                // Quick Send Button if collapsed and has items
+                // Quick Send / Stop Button if collapsed and has items
                 if controller.isCollapsed && !queue.items.isEmpty {
                     Button(action: {
-                        Task {
-                            await queue.sendAll(targetDevice: discovery.targetDeviceIdentifier)
+                        if queue.isSending {
+                            queue.cancelSend()
+                        } else {
+                            Task {
+                                await queue.sendAll(targetDevice: discovery.targetDeviceIdentifier)
+                            }
                         }
                     }) {
                         HStack(spacing: 4) {
                             if queue.isSending {
-                                ProgressView()
-                                    .controlSize(.mini)
+                                Image(systemName: "stop.fill")
+                                    .font(.system(size: 8, weight: .bold))
+                                Text("Stop")
+                                    .font(.system(size: 11, weight: .semibold))
                             } else {
                                 Image(systemName: "paperplane.fill")
                                     .font(.system(size: 10))
@@ -121,12 +127,11 @@ public struct FloatingWidgetView: View {
                         }
                         .padding(.horizontal, 7)
                         .padding(.vertical, 3)
-                        .background(Color.accentColor)
+                        .background(queue.isSending ? Color.red.opacity(0.85) : Color.accentColor)
                         .foregroundColor(.white)
                         .cornerRadius(6)
                     }
                     .buttonStyle(.plain)
-                    .disabled(queue.isSending)
                 }
 
                 // Collapse / Expand Button (Sticky notes style)
@@ -300,14 +305,11 @@ public struct FloatingWidgetView: View {
     // MARK: - Footer Action Bar
     private var footerActionBar: some View {
         VStack(spacing: 8) {
-            if let status = queue.statusMessage {
-                HStack(alignment: .top, spacing: 6) {
-                    Image(systemName: queue.isSuccess ? "checkmark.circle.fill" : "exclamationmark.triangle.fill")
-                        .font(.system(size: 11))
-                        .foregroundColor(queue.isSuccess ? .green : .red)
-                        .padding(.top, 1)
-
-                    Text(status)
+            if queue.isSending {
+                HStack(alignment: .center, spacing: 6) {
+                    ProgressView()
+                        .controlSize(.mini)
+                    Text(queue.statusMessage ?? "Sending...")
                         .font(.system(size: 11, weight: .medium))
                         .foregroundColor(queue.isSuccess ? .green : .red)
                         .fixedSize(horizontal: false, vertical: true)
@@ -317,7 +319,63 @@ public struct FloatingWidgetView: View {
                     Spacer(minLength: 0)
                 }
                 .padding(.horizontal, 4)
-                .help(status)
+            } else {
+                VStack(alignment: .leading, spacing: 4) {
+                    // Success messages shown in green
+                    if let success = queue.successMessage {
+                        HStack(alignment: .top, spacing: 6) {
+                            Image(systemName: "checkmark.circle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.green)
+                                .padding(.top, 1)
+
+                            Text(success)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.green)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(3)
+                                .multilineTextAlignment(.leading)
+
+                            Spacer(minLength: 0)
+                        }
+                        .padding(.horizontal, 4)
+                        .help(success)
+                    }
+
+                    // Error messages shown in red
+                    if let error = queue.errorMessage {
+                        HStack(alignment: .top, spacing: 6) {
+                            Image(systemName: "exclamationmark.triangle.fill")
+                                .font(.system(size: 11))
+                                .foregroundColor(.red)
+                                .padding(.top, 1)
+
+                            Text(error)
+                                .font(.system(size: 11, weight: .medium))
+                                .foregroundColor(.red)
+                                .fixedSize(horizontal: false, vertical: true)
+                                .lineLimit(4)
+                                .multilineTextAlignment(.leading)
+
+                            Spacer(minLength: 0)
+
+                            Button(action: {
+                                withAnimation {
+                                    queue.dismissError()
+                                }
+                            }) {
+                                Image(systemName: "xmark")
+                                    .font(.system(size: 9, weight: .bold))
+                                    .foregroundColor(.secondary)
+                                    .frame(width: 14, height: 14)
+                            }
+                            .buttonStyle(.plain)
+                            .help("Dismiss error")
+                        }
+                        .padding(.horizontal, 4)
+                        .help(error)
+                    }
+                }
             }
 
             // ── Batch destination row ─────────────────────────────────────────
@@ -342,29 +400,39 @@ public struct FloatingWidgetView: View {
                 Spacer()
 
                 Button(action: {
-                    Task {
-                        await queue.sendAll(targetDevice: discovery.targetDeviceIdentifier)
+                    if queue.isSending {
+                        queue.cancelSend()
+                    } else {
+                        Task {
+                            await queue.sendAll(targetDevice: discovery.targetDeviceIdentifier)
+                        }
                     }
                 }) {
                     HStack(spacing: 5) {
                         if queue.isSending {
-                            ProgressView()
-                                .controlSize(.small)
+                            Image(systemName: "stop.fill")
+                                .font(.system(size: 10, weight: .bold))
+                            Text("Stop")
+                                .font(.system(size: 12, weight: .semibold))
                         } else {
-                            Image(systemName: "paperplane.fill")
+                            Image(systemName: isAllQueuedItemsFailed ? "arrow.clockwise" : "paperplane.fill")
                                 .font(.system(size: 11))
+                            Text(sendButtonTitle)
+                                .font(.system(size: 12, weight: .semibold))
                         }
-                        Text(sendButtonTitle)
-                            .font(.system(size: 12, weight: .semibold))
                     }
                     .padding(.horizontal, 12)
                     .padding(.vertical, 6)
-                    .background(queue.items.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor)
+                    .background(
+                        queue.isSending
+                            ? Color.red.opacity(0.85)
+                            : (queue.items.isEmpty ? Color.secondary.opacity(0.3) : Color.accentColor)
+                    )
                     .foregroundColor(.white)
                     .cornerRadius(8)
                 }
                 .buttonStyle(.plain)
-                .disabled(queue.items.isEmpty || queue.isSending)
+                .disabled(queue.items.isEmpty && !queue.isSending)
             }
         }
     }
@@ -510,11 +578,18 @@ public struct FloatingWidgetView: View {
         }
     }
 
+    private var isAllQueuedItemsFailed: Bool {
+        !queue.items.isEmpty && queue.items.allSatisfy { $0.failureReason != nil || $0.failureMessage != nil }
+    }
+
     private var sendButtonTitle: String {
         if queue.isSending {
             return "Sending..."
         }
         let count = queue.items.count
+        if isAllQueuedItemsFailed {
+            return count <= 1 ? "Retry" : "Retry \(count) Items"
+        }
         if count <= 1 {
             return "Send to Simulator"
         } else {

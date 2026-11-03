@@ -80,6 +80,9 @@ public struct QueueItem: Identifiable, Hashable, Sendable {
     public let id: UUID
     public let url: URL
     public let kind: QueueItemKind
+    /// Short, concise failure label for row subtitles (e.g. "macOS app (requires iOS build)")
+    public var failureReason: String?
+    /// Full diagnostic explanation for tooltips and accessibility
     public var failureMessage: String?
     /// Where this item will be sent. Defaults to `.auto` (smart routing by file type).
     public var destination: QueueItemDestination = .auto
@@ -88,6 +91,7 @@ public struct QueueItem: Identifiable, Hashable, Sendable {
         self.id = UUID()
         self.url = url
         self.kind = QueueItemKind(url: url)
+        self.failureReason = nil
         self.failureMessage = nil
     }
 
