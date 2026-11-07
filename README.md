@@ -20,6 +20,23 @@
 - **App Bundles (`.app`)**: Drag built `.app` bundles to instantly install them via `xcrun simctl install`.
 - **Deep Links & Web URLs**: Drop `.webloc` files or add `myapp://path` / web links to open directly in the simulator via `xcrun simctl openurl`.
 - **Push Notifications (`.apns`)**: Drop an `.apns` JSON payload; Harbor detects the `"Simulator Target Bundle"` and fires a simulated push notification.
+  <details>
+  <summary><b>Example <code>.apns</code> payload format</b></summary>
+
+  ```json
+  {
+    "Simulator Target Bundle": "com.example.yourApp",
+    "aps": {
+      "alert": {
+        "title": "Test Title",
+        "body": "Test push notification body"
+      },
+      "badge": 1,
+      "sound": "default"
+    }
+  }
+  ```
+  </details>
 - **Documents & Raw Files**: Direct routing into the active app's `Documents` sandbox container.
 
 ### 2. 🪟 Draggable & Collapsible Floating Drop Window
