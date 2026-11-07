@@ -54,13 +54,38 @@
 
 ## Installation & First Launch 🚀
 
+> [!IMPORTANT]
+> ### ⚠️ macOS Gatekeeper Warning
+> Harbor is an independent open-source project and is **not signed with a paid Apple Developer certificate**. On first launch, macOS will block the app and display an *"Apple cannot verify the developer"* alert.
+>
+> **To allow Harbor to run:**
+> - **Terminal (Fastest):** Run this command once:
+>   ```bash
+>   xattr -cr /Applications/Harbor.app
+>   ```
+> - **Or via System Settings:** Open **System Settings** → **Privacy & Security**, scroll down to the **Security** section, and click **"Open Anyway"**.
+
+### Option 1: Via Homebrew (Recommended)
+
+```bash
+brew install anurag0713/harbor/harbor
+```
+
+Or tap the repository first and install:
+```bash
+brew tap anurag0713/harbor
+brew install harbor
+```
+
+### Option 2: Direct Download
+
 1. Download **`Harbor.zip`** from the [Latest Release](https://github.com/anurag0713/Harbor/releases).
 2. Unzip and drag `Harbor.app` into your `/Applications` folder.
-3. Open Harbor:
-   - **Where to look:** Harbor is a lightweight Menu Bar utility (`LSUIElement`). It does not appear in the Dock; look for the **ferry/ship icon** in the **top-right macOS Menu Bar** near your clock and Wi-Fi icons.
-   - **First Launch Note (Gatekeeper):** Because Harbor is open-source and not signed with an Apple Developer certificate, macOS may show an *"Apple could not verify Harbor"* warning.
-     - Either open **System Settings → Privacy & Security** and click **"Open Anyway"**.
-     - Or run: `xattr -cr /Applications/Harbor.app`
+
+---
+
+### Where to find Harbor after launch:
+Harbor is a lightweight Menu Bar companion. **It does not appear in the Dock.** Look for the **ship icon (🚢)** in your **macOS Menu Bar** (top-right corner near your Wi-Fi and clock).
 
 ---
 
