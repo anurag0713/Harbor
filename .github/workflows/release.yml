@@ -49,3 +49,33 @@ jobs:
           generate_release_notes: true
           draft: false
           prerelease: false
+
+      - name: Update Homebrew Cask
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+        run: |
+          # 1. Strip the 'v' from tag (e.g. v1.3.0 -> 1.3.0)
+          VERSION="${GITHUB_REF_NAME#v}"
+
+          # 2. Compute SHA-256 hash of the zipped app
+          SHA256=$(shasum -a 256 build/Harbor.zip | awk '{print $1}')
+
+          # 3. Clone homebrew-harbor using the Personal Access Token
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/anurag0713/homebrew-harbor.git tap-repo
+
+          cd tap-repo
+
+          # 4. Update version and sha256 in Casks/harbor.rb
+          sed -i '' "s/version \".*\"/version \"${VERSION}\"/" Casks/harbor.rb
+          sed -i '' "s/sha256 \".*\"/sha256 \"${SHA256}\"/" Casks/harbor.rb
+
+          # 5. Commit and push if there are changes
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add Casks/harbor.rb
+          if git diff --staged --quiet; then
+            echo "No changes to commit in Cask definition."
+          else
+            git commit -m "Bump Harbor to v${VERSION}"
+            git push origin main
+          fi
