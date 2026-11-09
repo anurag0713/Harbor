@@ -8,6 +8,7 @@ public final class QueueManager: ObservableObject {
 
     @Published public private(set) var items: [QueueItem] = []
     @Published public private(set) var isSending: Bool = false
+    @Published public private(set) var activelyTransferringItemID: UUID? = nil
     @Published public private(set) var statusMessage: String?
     @Published public private(set) var successMessage: String?
     @Published public private(set) var errorMessage: String?
@@ -146,9 +147,16 @@ public final class QueueManager: ObservableObject {
                 items: sortedItems,
                 targetDevice: targetDevice,
                 fallbackBundleId: targetBundleId,
+                onItemStart: { [weak self] itemID in
+                    guard let self = self else { return }
+                    self.activelyTransferringItemID = itemID
+                },
                 onItemSuccess: { [weak self] itemID in
                     guard let self = self else { return }
                     self.items.removeAll { $0.id == itemID }
+                    if self.activelyTransferringItemID == itemID {
+                        self.activelyTransferringItemID = nil
+                    }
                     self.completedCount += 1
                     self.statusMessage = "Sending (\(self.completedCount)/\(self.totalCount))..."
                 }
@@ -159,6 +167,7 @@ public final class QueueManager: ObservableObject {
         self.activeTransferTask = nil
 
         isSending = false
+        activelyTransferringItemID = nil
         activeBatchIDs.removeAll()
         completedCount = totalCount
 

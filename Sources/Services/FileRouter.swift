@@ -72,6 +72,7 @@ public final class FileRouter {
         targetDevice: String = "booted",
         fallbackBundleId: String? = nil,
         globalDocumentTarget: QueueItemDestination = .auto,
+        onItemStart: (@MainActor (UUID) -> Void)? = nil,
         onItemSuccess: (@MainActor (UUID) -> Void)? = nil
     ) async -> BatchTransferResult {
         guard !items.isEmpty else {
@@ -134,6 +135,7 @@ public final class FileRouter {
                 itemErrors[item.id] = ItemTransferError.general(short: "Stopped by user", detailed: "Transfer was stopped.")
                 continue
             }
+            await onItemStart?(item.id)
             let res = await SimulatorService.shared.installApp(device: targetDevice, fileURL: item.url)
             if res.isSuccess {
                 successfulItemIDs.insert(item.id)
@@ -150,6 +152,7 @@ public final class FileRouter {
             let mediaRes = await SimulatorService.shared.addMediaProgressive(
                 device: targetDevice,
                 items: mediaItems,
+                onItemStart: onItemStart,
                 onItemSuccess: onItemSuccess
             )
             successfulItemIDs.formUnion(mediaRes.succeededIDs)
@@ -169,6 +172,7 @@ public final class FileRouter {
             let filesRes = await SimulatorService.shared.copyFilesToFilesAppProgressive(
                 device: targetDevice,
                 items: filesAppItems,
+                onItemStart: onItemStart,
                 onItemSuccess: onItemSuccess
             )
             successfulItemIDs.formUnion(filesRes.succeededIDs)
@@ -189,6 +193,7 @@ public final class FileRouter {
                 device: targetDevice,
                 bundleId: bundleId,
                 items: groupItems,
+                onItemStart: onItemStart,
                 onItemSuccess: onItemSuccess
             )
             successfulItemIDs.formUnion(appRes.succeededIDs)
@@ -224,6 +229,7 @@ public final class FileRouter {
                 targetURL = item.url
             }
 
+            await onItemStart?(item.id)
             let res = await SimulatorService.shared.openURL(device: targetDevice, url: targetURL)
             if res.isSuccess {
                 successfulItemIDs.insert(item.id)
@@ -249,6 +255,7 @@ public final class FileRouter {
                 itemErrors[item.id] = ItemTransferError.general(short: "No bundle ID", detailed: err)
             } else {
                 do {
+                    await onItemStart?(item.id)
                     let res = try await SimulatorService.shared.runXcrun(
                         arguments: ["simctl", "push", targetDevice, bundleId, item.url.path]
                     )

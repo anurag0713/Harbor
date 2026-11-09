@@ -7,6 +7,7 @@ public struct QueueItemRow: View {
 
     @ObservedObject private var catalog = AppCatalog.shared
     @ObservedObject private var discovery = SimulatorDiscovery.shared
+    @ObservedObject private var queue = QueueManager.shared
     @State private var showingPicker = false
 
     public init(
@@ -20,17 +21,19 @@ public struct QueueItemRow: View {
     }
 
     public var body: some View {
-        HStack(spacing: 8) {
+        let isItemActive = queue.activelyTransferringItemID == item.id
+
+        return HStack(spacing: 8) {
             // ── File-type icon (with error indicator if failed) ─────────────
             ZStack(alignment: .bottomTrailing) {
                 RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(item.failureReason != nil ? Color.red.opacity(0.12) : Color.white.opacity(0.08))
+                    .fill(item.failureReason != nil ? Color.red.opacity(0.12) : (isItemActive ? Color.accentColor.opacity(0.2) : Color.white.opacity(0.08)))
                     .frame(width: 28, height: 28)
 
                 Image(systemName: item.kind.systemImage)
                     .renderingMode(.template)
                     .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(item.failureReason != nil ? Color.red.opacity(0.9) : .white)
+                    .foregroundColor(item.failureReason != nil ? Color.red.opacity(0.9) : (isItemActive ? Color.accentColor : .white))
 
                 if item.failureReason != nil {
                     Image(systemName: "exclamationmark.circle.fill")
@@ -48,7 +51,12 @@ public struct QueueItemRow: View {
                     .lineLimit(1)
                     .truncationMode(.middle)
 
-                if let reason = item.failureReason ?? item.failureMessage {
+                if isItemActive {
+                    Text("Transferring…")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundColor(.accentColor)
+                        .lineLimit(1)
+                } else if let reason = item.failureReason ?? item.failureMessage {
                     Text(reason)
                         .font(.system(size: 10, weight: .medium))
                         .foregroundColor(.red)
@@ -85,21 +93,32 @@ public struct QueueItemRow: View {
                 destinationChip
             }
 
-            // ── Remove button ────────────────────────────────────────────────
-            Button(action: onRemove) {
-                Image(systemName: "xmark.circle.fill")
-                    .renderingMode(.template)
-                    .font(.system(size: 13))
-                    .foregroundColor(.secondary.opacity(0.6))
+            // ── Remove button / Active spinner ───────────────────────────────
+            if isItemActive {
+                ProgressView()
+                    .controlSize(.mini)
+                    .frame(width: 14, height: 14)
+            } else {
+                Button(action: onRemove) {
+                    Image(systemName: "xmark.circle.fill")
+                        .renderingMode(.template)
+                        .font(.system(size: 13))
+                        .foregroundColor(.secondary.opacity(queue.isSending ? 0.25 : 0.6))
+                }
+                .buttonStyle(.plain)
+                .disabled(queue.isSending)
+                .help("Remove from queue")
             }
-            .buttonStyle(.plain)
-            .help("Remove from queue")
         }
         .padding(.horizontal, 8)
         .padding(.vertical, 6)
         .background(
             RoundedRectangle(cornerRadius: 8, style: .continuous)
-                .fill(Color.primary.opacity(0.04))
+                .fill(isItemActive ? Color.accentColor.opacity(0.1) : Color.primary.opacity(0.04))
+        )
+        .overlay(
+            RoundedRectangle(cornerRadius: 8, style: .continuous)
+                .stroke(isItemActive ? Color.accentColor.opacity(0.3) : Color.clear, lineWidth: 1)
         )
     }
 
