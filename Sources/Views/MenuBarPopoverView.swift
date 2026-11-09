@@ -70,46 +70,51 @@ public struct MenuBarPopoverView: View {
 
             Divider()
 
-            // Open Drop Window Button
+            // Drop Window Toggle Card
             Button(action: {
                 widgetController.toggle()
             }) {
-                HStack(spacing: 8) {
+                HStack(spacing: 9) {
                     ZStack {
-                        Circle()
-                            .fill(Color.accentColor.opacity(0.2))
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(widgetController.isVisible ? Color.accentColor : Color.primary.opacity(0.08))
                             .frame(width: 28, height: 28)
                         Image(systemName: widgetController.isVisible ? "pip.exit" : "pip.enter")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(widgetController.isVisible ? .white : .primary)
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(widgetController.isVisible ? "Close Floating Drop Window" : "Open Floating Drop Window")
+                        Text("Floating Drop Window")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.primary)
-                        Text("Always-on-top draggable window for file imports")
+                        Text("Always-on-top drop zone for simulators")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(1)
                     }
 
                     Spacer()
 
-                    Image(systemName: widgetController.isVisible ? "checkmark.circle.fill" : "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
+                    Text(widgetController.isVisible ? "Active" : "Hidden")
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(widgetController.isVisible ? .green : .secondary)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(widgetController.isVisible ? Color.green.opacity(0.15) : Color.primary.opacity(0.06))
+                        )
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.primary.opacity(0.04))
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(widgetController.isVisible ? Color.accentColor.opacity(0.06) : Color.primary.opacity(0.03))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(widgetController.isVisible ? Color.accentColor.opacity(0.4) : Color.primary.opacity(0.08), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(widgetController.isVisible ? Color.accentColor.opacity(0.3) : Color.primary.opacity(0.08), lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
