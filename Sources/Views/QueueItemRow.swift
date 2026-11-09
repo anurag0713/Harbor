@@ -26,14 +26,16 @@ public struct QueueItemRow: View {
         return HStack(spacing: 8) {
             // ── File-type icon (with error indicator if failed) ─────────────
             ZStack(alignment: .bottomTrailing) {
-                RoundedRectangle(cornerRadius: 6, style: .continuous)
-                    .fill(item.failureReason != nil ? Color.red.opacity(0.12) : (isItemActive ? Color.accentColor.opacity(0.2) : Color.white.opacity(0.08)))
-                    .frame(width: 28, height: 28)
+                ZStack {
+                    RoundedRectangle(cornerRadius: 6, style: .continuous)
+                        .fill(item.failureReason != nil ? Color.red.opacity(0.12) : (isItemActive ? Color.accentColor.opacity(0.2) : Color.white.opacity(0.08)))
 
-                Image(systemName: item.kind.systemImage)
-                    .renderingMode(.template)
-                    .font(.system(size: 13, weight: .medium))
-                    .foregroundColor(item.failureReason != nil ? Color.red.opacity(0.9) : (isItemActive ? Color.accentColor : .white))
+                    Image(systemName: item.iconSystemName)
+                        .renderingMode(.template)
+                        .font(.system(size: 13, weight: .medium))
+                        .foregroundColor(item.failureReason != nil ? Color.red.opacity(0.9) : (isItemActive ? Color.accentColor : .white))
+                }
+                .frame(width: 28, height: 28)
 
                 if item.failureReason != nil {
                     Image(systemName: "exclamationmark.circle.fill")
