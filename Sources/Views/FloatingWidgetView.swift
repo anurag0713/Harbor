@@ -9,6 +9,7 @@ public struct FloatingWidgetView: View {
 
     @State private var isTargeted: Bool = false
     @State private var isShowingLinkPrompt: Bool = false
+    @State private var isShowingTypesHelp: Bool = false
     @State private var linkInputText: String = ""
 
     public init() {}
@@ -143,8 +144,9 @@ public struct FloatingWidgetView: View {
                     Image(systemName: controller.isCollapsed ? "chevron.down" : "chevron.up")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.secondary)
-                        .frame(width: 20, height: 20)
+                        .frame(width: 22, height: 22)
                         .background(Circle().fill(Color.primary.opacity(0.06)))
+                        .contentShape(Circle().scale(1.4))
                 }
                 .buttonStyle(.plain)
                 .help(controller.isCollapsed ? "Expand Queue" : "Collapse to Bar")
@@ -156,8 +158,9 @@ public struct FloatingWidgetView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.secondary)
-                        .frame(width: 20, height: 20)
+                        .frame(width: 22, height: 22)
                         .background(Circle().fill(Color.primary.opacity(0.06)))
+                        .contentShape(Circle().scale(1.4))
                 }
                 .buttonStyle(.plain)
                 .help("Close Window")
@@ -170,36 +173,61 @@ public struct FloatingWidgetView: View {
     // MARK: - Simulator Target Strip
     private var simulatorTargetStrip: some View {
         HStack(spacing: 6) {
-            Circle()
-                .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
-                .frame(width: 7, height: 7)
+            if discovery.allDevices.isEmpty {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 7, height: 7)
 
-            Picker("", selection: $discovery.selectedDevice) {
-                if !discovery.bootedDevices.isEmpty {
-                    Section("Running") {
-                        ForEach(discovery.bootedDevices) { dev in
-                            Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                Text(discovery.isScanning ? "Scanning for simulators..." : "No simulators found")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+            } else {
+                Circle()
+                    .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
+                    .frame(width: 7, height: 7)
+
+                Picker("", selection: $discovery.selectedDevice) {
+                    if !discovery.bootedDevices.isEmpty {
+                        Section("Running") {
+                            ForEach(discovery.bootedDevices) { dev in
+                                Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                            }
+                        }
+                    }
+
+                    ForEach(discovery.shutdownGroups) { group in
+                        Section(group.runtime) {
+                            ForEach(group.devices) { dev in
+                                Text(dev.name).tag(Optional(dev))
+                            }
                         }
                     }
                 }
-
-                ForEach(discovery.shutdownGroups) { group in
-                    Section(group.runtime) {
-                        ForEach(group.devices) { dev in
-                            Text(dev.name).tag(Optional(dev))
-                        }
-                    }
-                }
+                .labelsHidden()
+                .controlSize(.small)
             }
-            .labelsHidden()
-            .controlSize(.small)
 
             Spacer()
+
+            Button(action: { isShowingLinkPrompt = true }) {
+                Image(systemName: "link.badge.plus")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Add Deep Link or Web URL")
 
             Button(action: { discovery.refresh() }) {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
+                    .rotationEffect(.degrees(discovery.isScanning ? 360 : 0))
+                    .animation(
+                        discovery.isScanning
+                            ? .linear(duration: 0.8).repeatForever(autoreverses: false)
+                            : .default,
+                        value: discovery.isScanning
+                    )
             }
             .buttonStyle(.plain)
             .help("Refresh Simulators")
@@ -227,19 +255,39 @@ public struct FloatingWidgetView: View {
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
 
-            Button(action: { isShowingLinkPrompt = true }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "link")
-                        .font(.system(size: 10))
-                    Text("Add Link / Deep Link")
-                        .font(.system(size: 11, weight: .medium))
+            HStack(spacing: 8) {
+                Button(action: { isShowingLinkPrompt = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "link")
+                            .font(.system(size: 10))
+                        Text("Add Link / URL")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(Color.primary.opacity(0.06))
+                    .cornerRadius(6)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.primary.opacity(0.06))
-                .cornerRadius(6)
+                .buttonStyle(.plain)
+
+                Button(action: { isShowingTypesHelp = true }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 10))
+                        Text("Formats")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.primary.opacity(0.06))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                .help("View all supported file formats")
+                .popover(isPresented: $isShowingTypesHelp, arrowEdge: .bottom) {
+                    supportedTypesPopover
+                }
             }
-            .buttonStyle(.plain)
             .padding(.top, 4)
         }
         .frame(maxWidth: .infinity)
@@ -255,6 +303,41 @@ public struct FloatingWidgetView: View {
                         .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.primary.opacity(0.02))
                 )
         )
+    }
+
+    private var supportedTypesPopover: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Supported File Types")
+                .font(.system(size: 11, weight: .bold))
+                .padding(.bottom, 2)
+
+            ForEach([
+                ("photo.fill", "Photos & Videos", ".jpg · .png · .heic · .mov · .mp4"),
+                ("app.badge.fill", "App Bundles", ".app (installs to simulator)"),
+                ("bell.badge.fill", "Push Payloads", ".apns (simulates push notification)"),
+                ("person.crop.circle.fill", "Contacts", ".vcf (adds to Contacts app)"),
+                ("link", "Links & URLs", "myapp://, oauth://, https://"),
+                ("doc.fill", "Documents & Data", "Files app or specific app container"),
+            ], id: \.1) { icon, title, formats in
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: icon)
+                        .font(.system(size: 11))
+                        .foregroundColor(.accentColor)
+                        .frame(width: 16)
+                        .padding(.top, 1)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(title)
+                            .font(.system(size: 11, weight: .medium))
+                        Text(formats)
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .frame(width: 250)
     }
 
     // MARK: - Queue List View
@@ -286,11 +369,15 @@ public struct FloatingWidgetView: View {
 
                 Spacer()
 
-                Button("+ Link") {
-                    isShowingLinkPrompt = true
+                Button(action: { isShowingLinkPrompt = true }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "link")
+                            .font(.system(size: 9))
+                        Text("Add Link")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.accentColor)
             }
             .padding(.horizontal, 8)
@@ -449,14 +536,16 @@ public struct FloatingWidgetView: View {
     /// all queued files in a single step, updating every individual row's pill.
     private var batchDestinationRow: some View {
         HStack(spacing: 6) {
-            Image(systemName: "square.and.arrow.down.on.square")
-                .renderingMode(.template)
-                .font(.system(size: 10))
-                .foregroundColor(.secondary)
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.right.to.line")
+                    .renderingMode(.template)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.secondary)
 
-            Text("Send all to →")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(.secondary)
+                Text("Batch route:")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
 
             Menu {
                 // Auto (smart routing by file type) - no wand icon
@@ -500,19 +589,19 @@ public struct FloatingWidgetView: View {
                         .font(.system(size: 10, weight: .semibold))
                         .lineLimit(1)
                         .truncationMode(.tail)
-                        .frame(maxWidth: 90)
+                        .frame(maxWidth: 100)
                     Image(systemName: "chevron.up.chevron.down")
                         .renderingMode(.template)
                         .font(.system(size: 8))
                 }
                 .foregroundColor(isBatchTargetHighlighted ? .white : .secondary)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 7)
                 .padding(.vertical, 3)
                 .background(
                     Capsule()
                         .fill(isBatchTargetHighlighted
-                              ? Color.white.opacity(0.12)
-                              : Color.white.opacity(0.06))
+                              ? Color.accentColor.opacity(0.3)
+                              : Color.white.opacity(0.08))
                 )
             }
             .menuStyle(.borderlessButton)
@@ -526,7 +615,12 @@ public struct FloatingWidgetView: View {
 
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3.5)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color.primary.opacity(0.03))
+        )
     }
 
     private var batchTargetLabel: String {

@@ -110,6 +110,28 @@ public struct QueueItem: Identifiable, Hashable, Sendable {
         return url.lastPathComponent
     }
 
+    /// Contextual SF Symbol for the file or resource.
+    public var iconSystemName: String {
+        guard kind == .generalDocument, url.isFileURL else {
+            return kind.systemImage
+        }
+        let ext = url.pathExtension.lowercased()
+        switch ext {
+        case "pdf":
+            return "doc.richtext.fill"
+        case "swift", "c", "cpp", "h", "m", "js", "ts", "json", "py", "sh":
+            return "chevron.left.forwardslash.chevron.right"
+        case "zip", "tar", "gz", "bz2", "xz":
+            return "doc.zipper"
+        case "mp3", "m4a", "wav", "aac":
+            return "music.note"
+        case "txt", "md", "markdown", "log":
+            return "doc.plaintext.fill"
+        default:
+            return kind.systemImage
+        }
+    }
+
     public var formattedSize: String {
         guard url.isFileURL,
               let attrs = try? FileManager.default.attributesOfItem(atPath: url.path),

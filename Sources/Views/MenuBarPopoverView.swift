@@ -20,96 +20,128 @@ public struct MenuBarPopoverView: View {
 
                 Spacer()
 
-                // Simulator picker / status
-                if discovery.allDevices.isEmpty {
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(Color.orange)
-                            .frame(width: 7, height: 7)
-                        Text(discovery.isScanning ? "Scanning..." : "No Simulators")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
-                            .frame(width: 7, height: 7)
+                // Simulator status & target selector
+                HStack(spacing: 6) {
+                    Menu {
+                        if discovery.allDevices.isEmpty {
+                            Text(discovery.isScanning ? "Scanning for Simulators..." : "No Simulators Found")
+                        } else {
+                            Picker("Target Simulator", selection: $discovery.selectedDevice) {
+                                if !discovery.bootedDevices.isEmpty {
+                                    Section("Running") {
+                                        ForEach(discovery.bootedDevices) { dev in
+                                            Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                                        }
+                                    }
+                                }
 
-                        Picker("", selection: $discovery.selectedDevice) {
-                            if !discovery.bootedDevices.isEmpty {
-                                Section("Running") {
-                                    ForEach(discovery.bootedDevices) { dev in
-                                        Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                                ForEach(discovery.shutdownGroups) { group in
+                                    Section(group.runtime) {
+                                        ForEach(group.devices) { dev in
+                                            Text(dev.name).tag(Optional(dev))
+                                        }
                                     }
                                 }
                             }
-
-                            ForEach(discovery.shutdownGroups) { group in
-                                Section(group.runtime) {
-                                    ForEach(group.devices) { dev in
-                                        Text(dev.name).tag(Optional(dev))
-                                    }
-                                }
-                            }
+                            .pickerStyle(.inline)
                         }
-                        .labelsHidden()
-                        .controlSize(.mini)
-                        .frame(maxWidth: 165)
-                    }
-                }
 
-                Button(action: { discovery.refresh() }) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11))
+                        Divider()
+
+                        Button(action: { discovery.refresh() }) {
+                            Label("Refresh Simulators", systemImage: "arrow.clockwise")
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(discovery.selectedDevice?.isBooted == true ? Color.green : (discovery.allDevices.isEmpty ? Color.orange : Color.secondary.opacity(0.6)))
+                                .frame(width: 6, height: 6)
+
+                            Text(discovery.selectedDevice != nil ? discovery.displayName(for: discovery.selectedDevice!) : (discovery.isScanning ? "Scanning..." : "No Simulators"))
+                                .font(.system(size: 11, weight: .medium))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(maxWidth: 125)
+
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 8, weight: .semibold))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3.5)
+                        .background(
+                            Capsule()
+                                .fill(Color.primary.opacity(0.06))
+                        )
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+
+                    Button(action: { discovery.refresh() }) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .rotationEffect(.degrees(discovery.isScanning ? 360 : 0))
+                            .animation(
+                                discovery.isScanning
+                                    ? .linear(duration: 0.8).repeatForever(autoreverses: false)
+                                    : .default,
+                                value: discovery.isScanning
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Refresh Simulators")
                 }
-                .buttonStyle(.plain)
-                .help("Refresh Booted Simulators")
             }
             .padding(.bottom, 2)
 
             Divider()
 
-            // Open Drop Window Button
+            // Drop Window Toggle Card
             Button(action: {
                 widgetController.toggle()
             }) {
-                HStack(spacing: 8) {
+                HStack(spacing: 9) {
                     ZStack {
-                        Circle()
-                            .fill(Color.accentColor.opacity(0.2))
+                        RoundedRectangle(cornerRadius: 7, style: .continuous)
+                            .fill(widgetController.isVisible ? Color.accentColor : Color.primary.opacity(0.08))
                             .frame(width: 28, height: 28)
                         Image(systemName: widgetController.isVisible ? "pip.exit" : "pip.enter")
                             .font(.system(size: 12, weight: .bold))
-                            .foregroundColor(.white)
+                            .foregroundColor(widgetController.isVisible ? .white : .primary)
                     }
 
                     VStack(alignment: .leading, spacing: 2) {
-                        Text(widgetController.isVisible ? "Close Floating Drop Window" : "Open Floating Drop Window")
+                        Text("Floating Drop Window")
                             .font(.system(size: 12, weight: .semibold))
                             .foregroundColor(.primary)
-                        Text("Always-on-top draggable window for file imports")
+                        Text("Always-on-top drop zone for simulators")
                             .font(.system(size: 10))
                             .foregroundColor(.secondary)
-                            .lineLimit(2)
-                            .fixedSize(horizontal: false, vertical: true)
+                            .lineLimit(1)
                     }
 
                     Spacer()
 
-                    Image(systemName: widgetController.isVisible ? "checkmark.circle.fill" : "chevron.right")
-                        .font(.system(size: 11, weight: .semibold))
+                    Text(widgetController.isVisible ? "Active" : "Hidden")
+                        .font(.system(size: 10, weight: .semibold))
                         .foregroundColor(widgetController.isVisible ? .green : .secondary)
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3)
+                        .background(
+                            Capsule()
+                                .fill(widgetController.isVisible ? Color.green.opacity(0.15) : Color.primary.opacity(0.06))
+                        )
                 }
                 .padding(.horizontal, 10)
                 .padding(.vertical, 8)
                 .background(
-                    RoundedRectangle(cornerRadius: 10)
-                        .fill(Color.primary.opacity(0.04))
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .fill(widgetController.isVisible ? Color.accentColor.opacity(0.06) : Color.primary.opacity(0.03))
                 )
                 .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(widgetController.isVisible ? Color.accentColor.opacity(0.4) : Color.primary.opacity(0.08), lineWidth: 1)
+                    RoundedRectangle(cornerRadius: 10, style: .continuous)
+                        .stroke(widgetController.isVisible ? Color.accentColor.opacity(0.3) : Color.primary.opacity(0.08), lineWidth: 1)
                 )
             }
             .buttonStyle(.plain)
@@ -122,7 +154,23 @@ public struct MenuBarPopoverView: View {
             Divider()
 
             // Footer / Settings
-            HStack {
+            HStack(spacing: 8) {
+                Button(action: {
+                    SettingsWindowController.shared.show()
+                }) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Harbor Settings")
+
+                if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                    Text("v\(version)")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
+
                 Spacer()
 
                 Button("Quit") {

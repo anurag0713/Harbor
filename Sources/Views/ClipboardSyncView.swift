@@ -24,14 +24,18 @@ public struct ClipboardSyncView: View {
                     .foregroundColor(.secondary)
             }
 
+            Text("Sync text between macOS pasteboard and the simulator.")
+                .font(.system(size: 10))
+                .foregroundColor(.secondary)
+
             // Preview box
             HStack(spacing: 6) {
                 Image(systemName: "text.quote")
                     .foregroundColor(.secondary)
-                    .font(.system(size: 11))
+                    .font(.system(size: 10))
                 Text(clipboard.currentHostPreview)
                     .font(.system(size: 11))
-                    .foregroundColor(.secondary)
+                    .foregroundColor(clipboard.currentHostPreview.hasPrefix("(") ? .secondary : .primary)
                     .lineLimit(1)
                 Spacer()
             }
@@ -65,15 +69,11 @@ public struct ClipboardSyncView: View {
                 .controlSize(.regular)
             }
 
-            Text("Copies and syncs clipboard text between your Mac and the simulator.")
-                .font(.system(size: 10))
-                .foregroundColor(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-
             if let feedback = feedbackText {
                 HStack(spacing: 4) {
                     Image(systemName: feedbackIsError ? "exclamationmark.circle.fill" : "checkmark.circle.fill")
                         .foregroundColor(feedbackIsError ? .red : .green)
+                        .font(.system(size: 10))
                     Text(feedback)
                         .foregroundColor(feedbackIsError ? .red : .green)
                         .font(.system(size: 11))

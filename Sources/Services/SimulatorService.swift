@@ -292,6 +292,7 @@ public final class SimulatorService {
     public func addMediaProgressive(
         device: String = "booted",
         items: [QueueItem],
+        onItemStart: (@MainActor (UUID) -> Void)? = nil,
         onItemSuccess: (@MainActor (UUID) -> Void)? = nil
     ) async -> (succeededIDs: Set<UUID>, failedIDs: Set<UUID>, errors: [UUID: ItemTransferError]) {
         guard !items.isEmpty else { return ([], [], [:]) }
@@ -333,6 +334,9 @@ public final class SimulatorService {
             }
 
             let chunkURLs = chunk.map(\.url)
+            for item in chunk {
+                await onItemStart?(item.id)
+            }
             let res = await addMedia(device: device, fileURLs: chunkURLs)
 
             if Task.isCancelled {
@@ -486,6 +490,7 @@ public final class SimulatorService {
     public func copyFilesToFilesAppProgressive(
         device: String = "booted",
         items: [QueueItem],
+        onItemStart: (@MainActor (UUID) -> Void)? = nil,
         onItemSuccess: (@MainActor (UUID) -> Void)? = nil
     ) async -> (succeededIDs: Set<UUID>, failedIDs: Set<UUID>, errors: [UUID: ItemTransferError]) {
         guard !items.isEmpty else { return ([], [], [:]) }
@@ -501,6 +506,7 @@ public final class SimulatorService {
                     errors[item.id] = ItemTransferError.general(short: "Stopped by user", detailed: "Transfer was stopped.")
                     continue
                 }
+                await onItemStart?(item.id)
                 do {
                     try FilesStorage.copy(item.url, into: targetFolder)
                     succeeded.insert(item.id)
@@ -525,6 +531,7 @@ public final class SimulatorService {
         device: String = "booted",
         bundleId: String,
         items: [QueueItem],
+        onItemStart: (@MainActor (UUID) -> Void)? = nil,
         onItemSuccess: (@MainActor (UUID) -> Void)? = nil
     ) async -> (succeededIDs: Set<UUID>, failedIDs: Set<UUID>, errors: [UUID: ItemTransferError]) {
         guard !items.isEmpty else { return ([], [], [:]) }
@@ -560,6 +567,7 @@ public final class SimulatorService {
                 errors[item.id] = ItemTransferError.general(short: "Stopped by user", detailed: "Transfer was stopped.")
                 continue
             }
+            await onItemStart?(item.id)
             do {
                 let targetURL = documentsDir.appendingPathComponent(item.url.lastPathComponent)
                 if fileManager.fileExists(atPath: targetURL.path) {

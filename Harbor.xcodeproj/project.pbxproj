@@ -9,33 +9,47 @@
 /* Begin PBXBuildFile section */
 		1114F3281E00B1FBAB4C389A /* TransferResult.swift in Sources */ = {isa = PBXBuildFile; fileRef = B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */; };
 		1A5ECDC677D10F33851FB52D /* SimulatorDevice.swift in Sources */ = {isa = PBXBuildFile; fileRef = 97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */; };
-		AA001111000000000000001A /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA001111000000000000001B /* InstalledApp.swift */; };
-		AA001111000000000000002A /* QueueItemDestination.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA001111000000000000002B /* QueueItemDestination.swift */; };
-		AA001111000000000000003A /* AppCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = AA001111000000000000003B /* AppCatalog.swift */; };
 		1EF8E1BBE8DB19A3743A76EB /* HotkeyManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */; };
 		2CC47F452F4D6DD9F9B82DC5 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = EA55F19410C1810615650F50 /* Assets.xcassets */; };
+		3BC48852A8A420C6B2FAA3AB /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11381909C12A655983A782FB /* SettingsView.swift */; };
 		46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = A4D04111DCF5122FC498FAFF /* HarborApp.swift */; };
 		47003B974B4BFB35AE304C46 /* QueueManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = 4DB09FDCF294D15F4CF623DB /* QueueManager.swift */; };
 		529470BD3C81E6F22D6A6723 /* WindowDragHandle.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8BF8872DD1A7B816077B7F6F /* WindowDragHandle.swift */; };
+		63B2EE43ABC9D641BFFB57AD /* AppCatalog.swift in Sources */ = {isa = PBXBuildFile; fileRef = 03DEA4889D9662E8FC236A33 /* AppCatalog.swift */; };
 		65FFE3F23D7060BB9D3A9886 /* SimulatorService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 369E3C662A59DB4B02EF6996 /* SimulatorService.swift */; };
 		7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */ = {isa = PBXBuildFile; fileRef = E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */; };
 		745486DBE06BB71381C18415 /* FloatingWidgetPanel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3B917B290BF30B18F7775114 /* FloatingWidgetPanel.swift */; };
 		94D5B38CF250E28F76BFEC70 /* FloatingWidgetView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */; };
 		9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */ = {isa = PBXBuildFile; fileRef = E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */; };
 		A17936B543EA4EC5953DDC46 /* QueueItemRow.swift in Sources */ = {isa = PBXBuildFile; fileRef = 0EA198E7D66E088343D0B7BF /* QueueItemRow.swift */; };
+		B1ACF31DE6A0137723961D39 /* InstalledApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = B3FBA8B092D74CD9061656A6 /* InstalledApp.swift */; };
+		B81E3915716F5DE2B56F4169 /* QueueManagerTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = D322514EC35879C01AFD9980 /* QueueManagerTests.swift */; };
 		C82CB9877DEE09CE00624928 /* FilesStorage.swift in Sources */ = {isa = PBXBuildFile; fileRef = 8DEA0475402753CA1E1900E6 /* FilesStorage.swift */; };
+		CE05A9458DFB543A06BD5173 /* QueueItemTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DC84F56764560CB84D619B7D /* QueueItemTests.swift */; };
+		D35D411D72C900133AC0155C /* QueueItemDestination.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3A904EDDC629930916E6C08B /* QueueItemDestination.swift */; };
 		E3D7C2D7C8F48B343E199B3E /* QueueItem.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7DD8EB95BDDEABFDEA53F7EE /* QueueItem.swift */; };
+		ED14A0971659F40622CFB561 /* SimulatorDeviceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = B80E47A6FC73CD9F41236157 /* SimulatorDeviceTests.swift */; };
 		EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */ = {isa = PBXBuildFile; fileRef = 3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */; };
 		F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */ = {isa = PBXBuildFile; fileRef = 53B75D66C059730E173C5425 /* FileRouter.swift */; };
 		F626DE3C380CC04527823F58 /* MenuBarPopoverView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 499D3C9FC6585CB428B111B2 /* MenuBarPopoverView.swift */; };
 /* End PBXBuildFile section */
 
+/* Begin PBXContainerItemProxy section */
+		AE90168E5EBD7D88F1F19328 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = E1A41677E0D3A3B0DE821E73 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 2808BCF99DF40CC4C8E70735;
+			remoteInfo = Harbor;
+		};
+/* End PBXContainerItemProxy section */
+
 /* Begin PBXFileReference section */
+		03DEA4889D9662E8FC236A33 /* AppCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCatalog.swift; sourceTree = "<group>"; };
 		0EA198E7D66E088343D0B7BF /* QueueItemRow.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueItemRow.swift; sourceTree = "<group>"; };
-		AA001111000000000000001B /* InstalledApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApp.swift; sourceTree = "<group>"; };
-		AA001111000000000000002B /* QueueItemDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueItemDestination.swift; sourceTree = "<group>"; };
-		AA001111000000000000003B /* AppCatalog.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppCatalog.swift; sourceTree = "<group>"; };
+		11381909C12A655983A782FB /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		369E3C662A59DB4B02EF6996 /* SimulatorService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorService.swift; sourceTree = "<group>"; };
+		3A904EDDC629930916E6C08B /* QueueItemDestination.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueItemDestination.swift; sourceTree = "<group>"; };
 		3B917B290BF30B18F7775114 /* FloatingWidgetPanel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FloatingWidgetPanel.swift; sourceTree = "<group>"; };
 		3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardService.swift; sourceTree = "<group>"; };
 		499D3C9FC6585CB428B111B2 /* MenuBarPopoverView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuBarPopoverView.swift; sourceTree = "<group>"; };
@@ -48,8 +62,13 @@
 		97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDevice.swift; sourceTree = "<group>"; };
 		A4D04111DCF5122FC498FAFF /* HarborApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HarborApp.swift; sourceTree = "<group>"; };
 		B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TransferResult.swift; sourceTree = "<group>"; };
+		B3FBA8B092D74CD9061656A6 /* InstalledApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InstalledApp.swift; sourceTree = "<group>"; };
+		B80E47A6FC73CD9F41236157 /* SimulatorDeviceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDeviceTests.swift; sourceTree = "<group>"; };
+		C7972E793D4F5BE6AF54E941 /* HarborTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = HarborTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		D3168FB726624EBE33FF163B /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
+		D322514EC35879C01AFD9980 /* QueueManagerTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueManagerTests.swift; sourceTree = "<group>"; };
 		D7EDE9A672996BDBD1DAA77F /* HotkeyManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HotkeyManager.swift; sourceTree = "<group>"; };
+		DC84F56764560CB84D619B7D /* QueueItemTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = QueueItemTests.swift; sourceTree = "<group>"; };
 		E7E621540AAA41952F49FCC4 /* ClipboardSyncView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ClipboardSyncView.swift; sourceTree = "<group>"; };
 		E94F0D46A647987222D02626 /* SimulatorDiscovery.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SimulatorDiscovery.swift; sourceTree = "<group>"; };
 		EA55F19410C1810615650F50 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -61,6 +80,7 @@
 			isa = PBXGroup;
 			children = (
 				6FC53CE8C16BE25856D8A242 /* Sources */,
+				8E5E3712AAFD04C025074BEF /* Tests */,
 				CC43AAD20CAB978C29A392F1 /* Products */,
 			);
 			sourceTree = "<group>";
@@ -78,6 +98,16 @@
 			path = Sources;
 			sourceTree = "<group>";
 		};
+		8E5E3712AAFD04C025074BEF /* Tests */ = {
+			isa = PBXGroup;
+			children = (
+				DC84F56764560CB84D619B7D /* QueueItemTests.swift */,
+				D322514EC35879C01AFD9980 /* QueueManagerTests.swift */,
+				B80E47A6FC73CD9F41236157 /* SimulatorDeviceTests.swift */,
+			);
+			path = Tests;
+			sourceTree = "<group>";
+		};
 		A970A4786F2A8A3F6C8ED9C0 /* Views */ = {
 			isa = PBXGroup;
 			children = (
@@ -86,6 +116,7 @@
 				88E3949210318596CD6CDF4E /* FloatingWidgetView.swift */,
 				499D3C9FC6585CB428B111B2 /* MenuBarPopoverView.swift */,
 				0EA198E7D66E088343D0B7BF /* QueueItemRow.swift */,
+				11381909C12A655983A782FB /* SettingsView.swift */,
 				8BF8872DD1A7B816077B7F6F /* WindowDragHandle.swift */,
 			);
 			path = Views;
@@ -95,6 +126,7 @@
 			isa = PBXGroup;
 			children = (
 				F4A098FA2BAEE5F46EA2760B /* Harbor.app */,
+				C7972E793D4F5BE6AF54E941 /* HarborTests.xctest */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -110,7 +142,7 @@
 		F2E9E6ED4F1654A3ADAB4149 /* Services */ = {
 			isa = PBXGroup;
 			children = (
-				AA001111000000000000003B /* AppCatalog.swift */,
+				03DEA4889D9662E8FC236A33 /* AppCatalog.swift */,
 				3C032CFD36CA33CD671F0E53 /* ClipboardService.swift */,
 				53B75D66C059730E173C5425 /* FileRouter.swift */,
 				8DEA0475402753CA1E1900E6 /* FilesStorage.swift */,
@@ -125,9 +157,9 @@
 		F325135CC5C2F683EA47E23D /* Models */ = {
 			isa = PBXGroup;
 			children = (
-				AA001111000000000000001B /* InstalledApp.swift */,
+				B3FBA8B092D74CD9061656A6 /* InstalledApp.swift */,
 				7DD8EB95BDDEABFDEA53F7EE /* QueueItem.swift */,
-				AA001111000000000000002B /* QueueItemDestination.swift */,
+				3A904EDDC629930916E6C08B /* QueueItemDestination.swift */,
 				97E37C8ABFB268EC609351B3 /* SimulatorDevice.swift */,
 				B2B4E54B1C859E7BBC4E108A /* TransferResult.swift */,
 			);
@@ -155,6 +187,24 @@
 			productReference = F4A098FA2BAEE5F46EA2760B /* Harbor.app */;
 			productType = "com.apple.product-type.application";
 		};
+		55C0EA4DEB3080BF9407B82A /* HarborTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = EDC49BC382086B2E3DD06D4E /* Build configuration list for PBXNativeTarget "HarborTests" */;
+			buildPhases = (
+				5F7782EA6387F6692F2D075C /* Sources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				5FE692215B487EE0E4D706A4 /* PBXTargetDependency */,
+			);
+			name = HarborTests;
+			packageProductDependencies = (
+			);
+			productName = HarborTests;
+			productReference = C7972E793D4F5BE6AF54E941 /* HarborTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 /* End PBXNativeTarget section */
 
 /* Begin PBXProject section */
@@ -181,6 +231,7 @@
 			projectRoot = "";
 			targets = (
 				2808BCF99DF40CC4C8E70735 /* Harbor */,
+				55C0EA4DEB3080BF9407B82A /* HarborTests */,
 			);
 		};
 /* End PBXProject section */
@@ -197,11 +248,21 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		5F7782EA6387F6692F2D075C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				CE05A9458DFB543A06BD5173 /* QueueItemTests.swift in Sources */,
+				B81E3915716F5DE2B56F4169 /* QueueManagerTests.swift in Sources */,
+				ED14A0971659F40622CFB561 /* SimulatorDeviceTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		95C0E0518523BE9E818074B0 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AA001111000000000000003A /* AppCatalog.swift in Sources */,
+				63B2EE43ABC9D641BFFB57AD /* AppCatalog.swift in Sources */,
 				EFC8909680D153BEFCD81AA7 /* ClipboardService.swift in Sources */,
 				7412985564913A55D7069B0D /* ClipboardSyncView.swift in Sources */,
 				F0E33DCB4D078CFF5A2D61AF /* FileRouter.swift in Sources */,
@@ -210,12 +271,13 @@
 				94D5B38CF250E28F76BFEC70 /* FloatingWidgetView.swift in Sources */,
 				46D9DEE7F39F97945B872AA1 /* HarborApp.swift in Sources */,
 				1EF8E1BBE8DB19A3743A76EB /* HotkeyManager.swift in Sources */,
+				B1ACF31DE6A0137723961D39 /* InstalledApp.swift in Sources */,
 				F626DE3C380CC04527823F58 /* MenuBarPopoverView.swift in Sources */,
-				AA001111000000000000001A /* InstalledApp.swift in Sources */,
 				E3D7C2D7C8F48B343E199B3E /* QueueItem.swift in Sources */,
-				AA001111000000000000002A /* QueueItemDestination.swift in Sources */,
+				D35D411D72C900133AC0155C /* QueueItemDestination.swift in Sources */,
 				A17936B543EA4EC5953DDC46 /* QueueItemRow.swift in Sources */,
 				47003B974B4BFB35AE304C46 /* QueueManager.swift in Sources */,
+				3BC48852A8A420C6B2FAA3AB /* SettingsView.swift in Sources */,
 				1A5ECDC677D10F33851FB52D /* SimulatorDevice.swift in Sources */,
 				9D5E46B52F9C97E38234E8C3 /* SimulatorDiscovery.swift in Sources */,
 				65FFE3F23D7060BB9D3A9886 /* SimulatorService.swift in Sources */,
@@ -225,6 +287,14 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXSourcesBuildPhase section */
+
+/* Begin PBXTargetDependency section */
+		5FE692215B487EE0E4D706A4 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 2808BCF99DF40CC4C8E70735 /* Harbor */;
+			targetProxy = AE90168E5EBD7D88F1F19328 /* PBXContainerItemProxy */;
+		};
+/* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
 		3012FBAAF503F3FC0CBC8735 /* Debug */ = {
@@ -346,6 +416,27 @@
 			};
 			name = Release;
 		};
+		53BB3C8A0477800495AC2AE9 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.anuragsingh.HarborTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Harbor.app/Contents/MacOS/Harbor";
+			};
+			name = Release;
+		};
 		677653C3AD255A2133EB3608 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -354,6 +445,7 @@
 				CODE_SIGNING_REQUIRED = NO;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = Sources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -367,6 +459,27 @@
 			};
 			name = Release;
 		};
+		68565DD2159B592C6B5A6D72 /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGNING_ALLOWED = YES;
+				CODE_SIGNING_REQUIRED = NO;
+				CODE_SIGN_IDENTITY = "-";
+				COMBINE_HIDPI_IMAGES = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/../Frameworks",
+					"@loader_path/../Frameworks",
+				);
+				MACOSX_DEPLOYMENT_TARGET = 14.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.anuragsingh.HarborTests;
+				SDKROOT = macosx;
+				SWIFT_VERSION = 5.9;
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/Harbor.app/Contents/MacOS/Harbor";
+			};
+			name = Debug;
+		};
 		D62A08C885ACC569AA2ADEE0 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -375,6 +488,7 @@
 				CODE_SIGNING_REQUIRED = NO;
 				CODE_SIGN_IDENTITY = "-";
 				COMBINE_HIDPI_IMAGES = YES;
+				ENABLE_TESTABILITY = YES;
 				INFOPLIST_FILE = Sources/Info.plist;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
@@ -405,6 +519,15 @@
 			buildConfigurations = (
 				D62A08C885ACC569AA2ADEE0 /* Debug */,
 				677653C3AD255A2133EB3608 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Debug;
+		};
+		EDC49BC382086B2E3DD06D4E /* Build configuration list for PBXNativeTarget "HarborTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				68565DD2159B592C6B5A6D72 /* Debug */,
+				53BB3C8A0477800495AC2AE9 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Debug;
