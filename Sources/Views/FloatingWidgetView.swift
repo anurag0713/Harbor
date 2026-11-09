@@ -9,6 +9,7 @@ public struct FloatingWidgetView: View {
 
     @State private var isTargeted: Bool = false
     @State private var isShowingLinkPrompt: Bool = false
+    @State private var isShowingTypesHelp: Bool = false
     @State private var linkInputText: String = ""
 
     public init() {}
@@ -244,19 +245,39 @@ public struct FloatingWidgetView: View {
                 .font(.system(size: 10))
                 .foregroundColor(.secondary)
 
-            Button(action: { isShowingLinkPrompt = true }) {
-                HStack(spacing: 4) {
-                    Image(systemName: "link")
-                        .font(.system(size: 10))
-                    Text("Add Link / Deep Link")
-                        .font(.system(size: 11, weight: .medium))
+            HStack(spacing: 8) {
+                Button(action: { isShowingLinkPrompt = true }) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "link")
+                            .font(.system(size: 10))
+                        Text("Add Link / URL")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .padding(.horizontal, 9)
+                    .padding(.vertical, 4)
+                    .background(Color.primary.opacity(0.06))
+                    .cornerRadius(6)
                 }
-                .padding(.horizontal, 8)
-                .padding(.vertical, 4)
-                .background(Color.primary.opacity(0.06))
-                .cornerRadius(6)
+                .buttonStyle(.plain)
+
+                Button(action: { isShowingTypesHelp = true }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "info.circle")
+                            .font(.system(size: 10))
+                        Text("Formats")
+                            .font(.system(size: 11, weight: .medium))
+                    }
+                    .padding(.horizontal, 8)
+                    .padding(.vertical, 4)
+                    .background(Color.primary.opacity(0.06))
+                    .cornerRadius(6)
+                }
+                .buttonStyle(.plain)
+                .help("View all supported file formats")
+                .popover(isPresented: $isShowingTypesHelp, arrowEdge: .bottom) {
+                    supportedTypesPopover
+                }
             }
-            .buttonStyle(.plain)
             .padding(.top, 4)
         }
         .frame(maxWidth: .infinity)
@@ -272,6 +293,41 @@ public struct FloatingWidgetView: View {
                         .fill(isTargeted ? Color.accentColor.opacity(0.08) : Color.primary.opacity(0.02))
                 )
         )
+    }
+
+    private var supportedTypesPopover: some View {
+        VStack(alignment: .leading, spacing: 8) {
+            Text("Supported File Types")
+                .font(.system(size: 11, weight: .bold))
+                .padding(.bottom, 2)
+
+            ForEach([
+                ("photo.fill", "Photos & Videos", ".jpg · .png · .heic · .mov · .mp4"),
+                ("app.badge.fill", "App Bundles", ".app (installs to simulator)"),
+                ("bell.badge.fill", "Push Payloads", ".apns (simulates push notification)"),
+                ("person.crop.circle.fill", "Contacts", ".vcf (adds to Contacts app)"),
+                ("link", "Links & URLs", "myapp://, oauth://, https://"),
+                ("doc.fill", "Documents & Data", "Files app or specific app container"),
+            ], id: \.1) { icon, title, formats in
+                HStack(alignment: .top, spacing: 8) {
+                    Image(systemName: icon)
+                        .font(.system(size: 11))
+                        .foregroundColor(.accentColor)
+                        .frame(width: 16)
+                        .padding(.top, 1)
+
+                    VStack(alignment: .leading, spacing: 1) {
+                        Text(title)
+                            .font(.system(size: 11, weight: .medium))
+                        Text(formats)
+                            .font(.system(size: 9))
+                            .foregroundColor(.secondary)
+                    }
+                }
+            }
+        }
+        .padding(12)
+        .frame(width: 250)
     }
 
     // MARK: - Queue List View
