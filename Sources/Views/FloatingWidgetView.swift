@@ -207,6 +207,14 @@ public struct FloatingWidgetView: View {
 
             Spacer()
 
+            Button(action: { isShowingLinkPrompt = true }) {
+                Image(systemName: "link.badge.plus")
+                    .font(.system(size: 11))
+                    .foregroundColor(.secondary)
+            }
+            .buttonStyle(.plain)
+            .help("Add Deep Link or Web URL")
+
             Button(action: { discovery.refresh() }) {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 10))
@@ -359,11 +367,15 @@ public struct FloatingWidgetView: View {
 
                 Spacer()
 
-                Button("+ Link") {
-                    isShowingLinkPrompt = true
+                Button(action: { isShowingLinkPrompt = true }) {
+                    HStack(spacing: 3) {
+                        Image(systemName: "link")
+                            .font(.system(size: 9))
+                        Text("Add Link")
+                            .font(.system(size: 10, weight: .semibold))
+                    }
                 }
                 .buttonStyle(.plain)
-                .font(.system(size: 10, weight: .semibold))
                 .foregroundColor(.accentColor)
             }
             .padding(.horizontal, 8)
@@ -522,14 +534,16 @@ public struct FloatingWidgetView: View {
     /// all queued files in a single step, updating every individual row's pill.
     private var batchDestinationRow: some View {
         HStack(spacing: 6) {
-            Image(systemName: "square.and.arrow.down.on.square")
-                .renderingMode(.template)
-                .font(.system(size: 10))
-                .foregroundColor(.secondary)
+            HStack(spacing: 4) {
+                Image(systemName: "arrow.right.to.line")
+                    .renderingMode(.template)
+                    .font(.system(size: 10, weight: .semibold))
+                    .foregroundColor(.secondary)
 
-            Text("Send all to →")
-                .font(.system(size: 10, weight: .medium))
-                .foregroundColor(.secondary)
+                Text("Batch route:")
+                    .font(.system(size: 10, weight: .medium))
+                    .foregroundColor(.secondary)
+            }
 
             Menu {
                 // Auto (smart routing by file type) - no wand icon
@@ -573,19 +587,19 @@ public struct FloatingWidgetView: View {
                         .font(.system(size: 10, weight: .semibold))
                         .lineLimit(1)
                         .truncationMode(.tail)
-                        .frame(maxWidth: 90)
+                        .frame(maxWidth: 100)
                     Image(systemName: "chevron.up.chevron.down")
                         .renderingMode(.template)
                         .font(.system(size: 8))
                 }
                 .foregroundColor(isBatchTargetHighlighted ? .white : .secondary)
-                .padding(.horizontal, 6)
+                .padding(.horizontal, 7)
                 .padding(.vertical, 3)
                 .background(
                     Capsule()
                         .fill(isBatchTargetHighlighted
-                              ? Color.white.opacity(0.12)
-                              : Color.white.opacity(0.06))
+                              ? Color.accentColor.opacity(0.3)
+                              : Color.white.opacity(0.08))
                 )
             }
             .menuStyle(.borderlessButton)
@@ -599,7 +613,12 @@ public struct FloatingWidgetView: View {
 
             Spacer(minLength: 0)
         }
-        .padding(.horizontal, 4)
+        .padding(.horizontal, 7)
+        .padding(.vertical, 3.5)
+        .background(
+            RoundedRectangle(cornerRadius: 6, style: .continuous)
+                .fill(Color.primary.opacity(0.03))
+        )
     }
 
     private var batchTargetLabel: String {
