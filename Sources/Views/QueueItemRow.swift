@@ -73,12 +73,7 @@ public struct QueueItemRow: View {
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
 
-                        if item.kind == .app {
-                            Text("· ⚡ Installs first")
-                                .font(.system(size: 9, weight: .medium))
-                                .foregroundColor(.accentColor.opacity(0.85))
-                                .fixedSize(horizontal: true, vertical: false)
-                        } else if !item.formattedSize.isEmpty {
+                        if !item.formattedSize.isEmpty {
                             Text("·")
                                 .font(.system(size: 8))
                                 .foregroundColor(.secondary.opacity(0.5))

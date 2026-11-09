@@ -520,7 +520,6 @@ public struct FloatingWidgetView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(queue.items.isEmpty && !queue.isSending)
-                .help(sendButtonTooltip)
             }
         }
     }
@@ -690,16 +689,6 @@ public struct FloatingWidgetView: View {
         } else {
             return "Send \(count) Items"
         }
-    }
-
-    private var sendButtonTooltip: String {
-        if queue.isSending {
-            return "Cancel active transfer"
-        }
-        if queue.items.contains(where: { $0.kind == .app }) && queue.items.count > 1 {
-            return "Send to simulator (App bundles will be installed first automatically)"
-        }
-        return "Send queued items to simulator"
     }
 
     // MARK: - Drop Handler
