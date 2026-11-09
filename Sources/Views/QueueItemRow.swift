@@ -73,7 +73,12 @@ public struct QueueItemRow: View {
                             .lineLimit(1)
                             .fixedSize(horizontal: true, vertical: false)
 
-                        if !item.formattedSize.isEmpty {
+                        if item.kind == .app {
+                            Text("· ⚡ Installs first")
+                                .font(.system(size: 9, weight: .medium))
+                                .foregroundColor(.accentColor.opacity(0.85))
+                                .fixedSize(horizontal: true, vertical: false)
+                        } else if !item.formattedSize.isEmpty {
                             Text("·")
                                 .font(.system(size: 8))
                                 .foregroundColor(.secondary.opacity(0.5))
@@ -289,26 +294,43 @@ public struct QueueItemRow: View {
         .padding(.bottom, 6)
     }
 
-    @ViewBuilder
     private func destinationRow(
         icon: String?,
         label: String,
         subtitle: String,
         destination: QueueItemDestination
     ) -> some View {
-        let isSelected = item.destination == destination
+        DestinationRowButton(
+            icon: icon,
+            label: label,
+            subtitle: subtitle,
+            isSelected: item.destination == destination,
+            onSelect: {
+                onDestinationChange(destination)
+                showingPicker = false
+            }
+        )
+    }
+}
 
-        Button(action: {
-            onDestinationChange(destination)
-            showingPicker = false
-        }) {
+private struct DestinationRowButton: View {
+    let icon: String?
+    let label: String
+    let subtitle: String
+    let isSelected: Bool
+    let onSelect: () -> Void
+
+    @State private var isHovered: Bool = false
+
+    var body: some View {
+        Button(action: onSelect) {
             HStack(spacing: 8) {
                 // Checkmark or placeholder spacer
                 if isSelected {
                     Image(systemName: "checkmark")
                         .renderingMode(.template)
                         .font(.system(size: 10, weight: .bold))
-                        .foregroundColor(.white)
+                        .foregroundColor(.accentColor)
                         .frame(width: 14)
                 } else {
                     Spacer()
@@ -320,7 +342,7 @@ public struct QueueItemRow: View {
                     Image(systemName: icon)
                         .renderingMode(.template)
                         .font(.system(size: 12))
-                        .foregroundColor(isSelected ? .white : .secondary)
+                        .foregroundColor(isSelected ? .accentColor : .secondary)
                         .frame(width: 16)
                 } else {
                     Spacer()
@@ -346,6 +368,13 @@ public struct QueueItemRow: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .background(isSelected ? Color.white.opacity(0.1) : Color.clear)
+        .background(
+            isSelected
+                ? Color.accentColor.opacity(0.18)
+                : (isHovered ? Color.white.opacity(0.06) : Color.clear)
+        )
+        .onHover { hovering in
+            isHovered = hovering
+        }
     }
 }

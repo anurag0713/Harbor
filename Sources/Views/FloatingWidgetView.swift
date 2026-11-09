@@ -144,8 +144,9 @@ public struct FloatingWidgetView: View {
                     Image(systemName: controller.isCollapsed ? "chevron.down" : "chevron.up")
                         .font(.system(size: 11, weight: .bold))
                         .foregroundColor(.secondary)
-                        .frame(width: 20, height: 20)
+                        .frame(width: 22, height: 22)
                         .background(Circle().fill(Color.primary.opacity(0.06)))
+                        .contentShape(Circle().scale(1.4))
                 }
                 .buttonStyle(.plain)
                 .help(controller.isCollapsed ? "Expand Queue" : "Collapse to Bar")
@@ -157,8 +158,9 @@ public struct FloatingWidgetView: View {
                     Image(systemName: "xmark")
                         .font(.system(size: 10, weight: .bold))
                         .foregroundColor(.secondary)
-                        .frame(width: 20, height: 20)
+                        .frame(width: 22, height: 22)
                         .background(Circle().fill(Color.primary.opacity(0.06)))
+                        .contentShape(Circle().scale(1.4))
                 }
                 .buttonStyle(.plain)
                 .help("Close Window")
@@ -518,6 +520,7 @@ public struct FloatingWidgetView: View {
                 }
                 .buttonStyle(.plain)
                 .disabled(queue.items.isEmpty && !queue.isSending)
+                .help(sendButtonTooltip)
             }
         }
     }
@@ -687,6 +690,16 @@ public struct FloatingWidgetView: View {
         } else {
             return "Send \(count) Items"
         }
+    }
+
+    private var sendButtonTooltip: String {
+        if queue.isSending {
+            return "Cancel active transfer"
+        }
+        if queue.items.contains(where: { $0.kind == .app }) && queue.items.count > 1 {
+            return "Send to simulator (App bundles will be installed first automatically)"
+        }
+        return "Send queued items to simulator"
     }
 
     // MARK: - Drop Handler
