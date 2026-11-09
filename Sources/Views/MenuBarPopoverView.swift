@@ -20,51 +20,78 @@ public struct MenuBarPopoverView: View {
 
                 Spacer()
 
-                // Simulator picker / status
-                if discovery.allDevices.isEmpty {
-                    HStack(spacing: 5) {
-                        Circle()
-                            .fill(Color.orange)
-                            .frame(width: 7, height: 7)
-                        Text(discovery.isScanning ? "Scanning..." : "No Simulators")
-                            .font(.system(size: 11))
-                            .foregroundColor(.secondary)
-                    }
-                } else {
-                    HStack(spacing: 4) {
-                        Circle()
-                            .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
-                            .frame(width: 7, height: 7)
+                // Simulator status & target selector
+                HStack(spacing: 6) {
+                    Menu {
+                        if discovery.allDevices.isEmpty {
+                            Text(discovery.isScanning ? "Scanning for Simulators..." : "No Simulators Found")
+                        } else {
+                            Picker("Target Simulator", selection: $discovery.selectedDevice) {
+                                if !discovery.bootedDevices.isEmpty {
+                                    Section("Running") {
+                                        ForEach(discovery.bootedDevices) { dev in
+                                            Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                                        }
+                                    }
+                                }
 
-                        Picker("", selection: $discovery.selectedDevice) {
-                            if !discovery.bootedDevices.isEmpty {
-                                Section("Running") {
-                                    ForEach(discovery.bootedDevices) { dev in
-                                        Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                                ForEach(discovery.shutdownGroups) { group in
+                                    Section(group.runtime) {
+                                        ForEach(group.devices) { dev in
+                                            Text(dev.name).tag(Optional(dev))
+                                        }
                                     }
                                 }
                             }
-
-                            ForEach(discovery.shutdownGroups) { group in
-                                Section(group.runtime) {
-                                    ForEach(group.devices) { dev in
-                                        Text(dev.name).tag(Optional(dev))
-                                    }
-                                }
-                            }
+                            .pickerStyle(.inline)
                         }
-                        .labelsHidden()
-                        .controlSize(.mini)
-                        .frame(maxWidth: 165)
-                    }
-                }
 
-                Button(action: { discovery.refresh() }) {
-                    Image(systemName: "arrow.clockwise")
-                        .font(.system(size: 11))
+                        Divider()
+
+                        Button(action: { discovery.refresh() }) {
+                            Label("Refresh Simulators", systemImage: "arrow.clockwise")
+                        }
+                    } label: {
+                        HStack(spacing: 5) {
+                            Circle()
+                                .fill(discovery.selectedDevice?.isBooted == true ? Color.green : (discovery.allDevices.isEmpty ? Color.orange : Color.secondary.opacity(0.6)))
+                                .frame(width: 6, height: 6)
+
+                            Text(discovery.selectedDevice != nil ? discovery.displayName(for: discovery.selectedDevice!) : (discovery.isScanning ? "Scanning..." : "No Simulators"))
+                                .font(.system(size: 11, weight: .medium))
+                                .lineLimit(1)
+                                .truncationMode(.tail)
+                                .frame(maxWidth: 125)
+
+                            Image(systemName: "chevron.up.chevron.down")
+                                .font(.system(size: 8, weight: .semibold))
+                                .foregroundColor(.secondary)
+                        }
+                        .padding(.horizontal, 7)
+                        .padding(.vertical, 3.5)
+                        .background(
+                            Capsule()
+                                .fill(Color.primary.opacity(0.06))
+                        )
+                    }
+                    .menuStyle(.borderlessButton)
+                    .fixedSize()
+
+                    Button(action: { discovery.refresh() }) {
+                        Image(systemName: "arrow.clockwise")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundColor(.secondary)
+                            .rotationEffect(.degrees(discovery.isScanning ? 360 : 0))
+                            .animation(
+                                discovery.isScanning
+                                    ? .linear(duration: 0.8).repeatForever(autoreverses: false)
+                                    : .default,
+                                value: discovery.isScanning
+                            )
+                    }
+                    .buttonStyle(.plain)
+                    .help("Refresh Simulators")
                 }
-                .buttonStyle(.plain)
-                .help("Refresh Booted Simulators")
             }
             .padding(.bottom, 2)
 
