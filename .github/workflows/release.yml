@@ -51,9 +51,15 @@ jobs:
           prerelease: false
 
       - name: Update Homebrew Cask
+        continue-on-error: true
         env:
           TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
         run: |
+          if [ -z "$TAP_TOKEN" ]; then
+            echo "::warning::TAP_GITHUB_TOKEN secret is not set. Skipping Homebrew Cask update."
+            exit 0
+          fi
+
           # 1. Strip the 'v' from tag (e.g. v1.3.0 -> 1.3.0)
           VERSION="${GITHUB_REF_NAME#v}"
 
@@ -61,9 +67,12 @@ jobs:
           SHA256=$(shasum -a 256 build/Harbor.zip | awk '{print $1}')
 
           # 3. Clone homebrew-harbor using the Personal Access Token
-          git clone https://x-access-token:${TAP_TOKEN}@github.com/anurag0713/homebrew-harbor.git tap-repo
+          git clone "https://x-access-token:${TAP_TOKEN}@github.com/anurag0713/homebrew-harbor.git" tap-repo
 
           cd tap-repo
+
+          # Unset the inherited extraheader from actions/checkout so the repo token doesn't override TAP_TOKEN
+          git config --local --unset-all "http.https://github.com/.extraheader" || true
 
           # 4. Update version and sha256 in Casks/harbor.rb
           sed -i '' "s/version \".*\"/version \"${VERSION}\"/" Casks/harbor.rb
@@ -77,5 +86,5 @@ jobs:
             echo "No changes to commit in Cask definition."
           else
             git commit -m "Bump Harbor to v${VERSION}"
-            git push origin main
+            git push "https://x-access-token:${TAP_TOKEN}@github.com/anurag0713/homebrew-harbor.git" main
           fi
