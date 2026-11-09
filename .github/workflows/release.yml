@@ -53,7 +53,7 @@ jobs:
       - name: Update Homebrew Cask
         continue-on-error: true
         env:
-          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN }}
+          TAP_TOKEN: ${{ secrets.TAP_GITHUB_TOKEN || secrets.HARBOR_HOMEBREW_TAP_TOKEN }}
         run: |
           if [ -z "$TAP_TOKEN" ]; then
             echo "::warning::TAP_GITHUB_TOKEN secret is not set. Skipping Homebrew Cask update."
