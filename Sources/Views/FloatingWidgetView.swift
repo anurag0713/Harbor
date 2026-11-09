@@ -170,29 +170,39 @@ public struct FloatingWidgetView: View {
     // MARK: - Simulator Target Strip
     private var simulatorTargetStrip: some View {
         HStack(spacing: 6) {
-            Circle()
-                .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
-                .frame(width: 7, height: 7)
+            if discovery.allDevices.isEmpty {
+                Circle()
+                    .fill(Color.orange)
+                    .frame(width: 7, height: 7)
 
-            Picker("", selection: $discovery.selectedDevice) {
-                if !discovery.bootedDevices.isEmpty {
-                    Section("Running") {
-                        ForEach(discovery.bootedDevices) { dev in
-                            Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                Text(discovery.isScanning ? "Scanning for simulators..." : "No simulators found")
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundColor(.secondary)
+            } else {
+                Circle()
+                    .fill(discovery.selectedDevice?.isBooted == true ? Color.green : Color.secondary.opacity(0.6))
+                    .frame(width: 7, height: 7)
+
+                Picker("", selection: $discovery.selectedDevice) {
+                    if !discovery.bootedDevices.isEmpty {
+                        Section("Running") {
+                            ForEach(discovery.bootedDevices) { dev in
+                                Text(discovery.displayName(for: dev)).tag(Optional(dev))
+                            }
+                        }
+                    }
+
+                    ForEach(discovery.shutdownGroups) { group in
+                        Section(group.runtime) {
+                            ForEach(group.devices) { dev in
+                                Text(dev.name).tag(Optional(dev))
+                            }
                         }
                     }
                 }
-
-                ForEach(discovery.shutdownGroups) { group in
-                    Section(group.runtime) {
-                        ForEach(group.devices) { dev in
-                            Text(dev.name).tag(Optional(dev))
-                        }
-                    }
-                }
+                .labelsHidden()
+                .controlSize(.small)
             }
-            .labelsHidden()
-            .controlSize(.small)
 
             Spacer()
 
@@ -200,6 +210,13 @@ public struct FloatingWidgetView: View {
                 Image(systemName: "arrow.clockwise")
                     .font(.system(size: 10))
                     .foregroundColor(.secondary)
+                    .rotationEffect(.degrees(discovery.isScanning ? 360 : 0))
+                    .animation(
+                        discovery.isScanning
+                            ? .linear(duration: 0.8).repeatForever(autoreverses: false)
+                            : .default,
+                        value: discovery.isScanning
+                    )
             }
             .buttonStyle(.plain)
             .help("Refresh Simulators")
