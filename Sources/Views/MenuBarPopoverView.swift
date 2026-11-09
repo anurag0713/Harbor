@@ -154,7 +154,23 @@ public struct MenuBarPopoverView: View {
             Divider()
 
             // Footer / Settings
-            HStack {
+            HStack(spacing: 8) {
+                Button(action: {
+                    SettingsWindowController.shared.show()
+                }) {
+                    Image(systemName: "gearshape")
+                        .font(.system(size: 12))
+                        .foregroundColor(.secondary)
+                }
+                .buttonStyle(.plain)
+                .help("Harbor Settings")
+
+                if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String {
+                    Text("v\(version)")
+                        .font(.system(size: 10, weight: .medium))
+                        .foregroundColor(.secondary.opacity(0.6))
+                }
+
                 Spacer()
 
                 Button("Quit") {
